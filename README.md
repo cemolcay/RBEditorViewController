@@ -1,7 +1,7 @@
 RBEditorViewController
 ====
 
-RhythmBud's editor UI code. 
+[WIP] RhythmBud's editor UI code. 
 
 ##### Core concepts:
 
@@ -12,6 +12,8 @@ RhythmBud's editor UI code.
 - Action bar
 - Mode bar
 - Dynamic toolbar rendering
+- Taking snapshots
+- History (undo/redo)
 
 ##### Disclaimer:
 
