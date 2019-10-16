@@ -189,13 +189,13 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     // Playhead
     playheadView.measureHeight = measureHeight
     playheadView.lineHeight = contentSize.height - measureHeight
-    playheadView.measureBeatWidth = measureWidth / CGFloat(timeSignatureBeatCount)
+    playheadView.measureWidth = measureWidth
     bringSubviewToFront(playheadView)
 
     // Rangehead
     rangeheadView.measureHeight = measureHeight
     rangeheadView.lineHeight = contentSize.height - measureHeight
-    rangeheadView.measureBeatWidth = measureWidth / CGFloat(timeSignatureBeatCount)
+    rangeheadView.measureWidth = measureWidth
     bringSubviewToFront(rangeheadView)
 
     CATransaction.commit()
