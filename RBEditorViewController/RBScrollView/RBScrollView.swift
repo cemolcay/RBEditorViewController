@@ -45,6 +45,12 @@ public protocol RBScrollViewDelegate: class {
   func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView)
 }
 
+enum RBOverlapState {
+  case resize
+  case moveLeft
+  case moveRight
+}
+
 public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadViewDelegate {
   public var measureBarCount: Int = 4
   public var measureCount: Int = 4
@@ -52,6 +58,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   public var minMeasureWidth: CGFloat = 50
   public var maxMeasureWidth: CGFloat = 150
   public var measureHeight: CGFloat = 24
+  public var cellVerticalPadding: CGFloat = 16
   public var timeSignatureBeatCount: Int = 4
   public var measureLayer = CALayer()
 
@@ -76,7 +83,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   private var cells: [RBScrollViewCell] = []
   private var selectedCellIndex: Int?
-  public var cellVerticalPadding: CGFloat = 16
+  private var overlapState: RBOverlapState?
 
   public var playheadView = RBPlayheadView(frame: .zero)
   public var rangeheadView = RBPlayheadView(frame: .zero)
@@ -390,19 +397,46 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     }
 
     setNeedsLayout()
+    fixOverlaps()
   }
 
   func fixOverlaps() {
-    guard cells.count > 1 else { return }
-    let sorted = cells.sorted(by: { $0.position < $1.position })
+    guard cells.count > 0, let overlapState = overlapState else { return }
 
+    let sorted = cells.sorted(by: { $0.position < $1.position })
     for index in 0..<sorted.count-1 {
       let cell = sorted[index]
       let nextCell = sorted[index + 1]
       if cell.position + cell.duration > nextCell.position {
-        guard let i = cells.firstIndex(of: cell) else { continue }
-        cells[i].duration = nextCell.position
-        rbDelegate?.rbScrollView(self, didUpdate: cells[i], at: i)
+        switch overlapState {
+        case .resize, .moveRight:
+          guard let i = cells.firstIndex(of: nextCell) else { continue }
+          // Move cell to right
+          let oldPosition = cells[i].position
+          cells[i].position = cell.position + cell.duration
+          // Reduce duration
+          let positionDiff = cells[i].position - oldPosition
+          cells[i].duration -= positionDiff
+          // Remove cell if needed
+          if (cells[i].duration <= 0) {
+            cells[i].removeFromSuperview()
+            cells.remove(at: i)
+            rbDelegate?.rbScrollView(self, didDelete: nextCell, at: i)
+          } else { // Update cell
+            rbDelegate?.rbScrollView(self, didUpdate: cells[i], at: i)
+          }
+        case .moveLeft:
+          guard let i = cells.firstIndex(of: cell) else { continue }
+          cells[i].duration = nextCell.position - cells[i].position
+          // Remove cell if needed
+          if (cells[i].duration <= 0) {
+            cells[i].removeFromSuperview()
+            cells.remove(at: i)
+            rbDelegate?.rbScrollView(self, didDelete: cell, at: i)
+          } else { // Update cell
+            rbDelegate?.rbScrollView(self, didUpdate: cells[i], at: i)
+          }
+        }
       }
     }
 
@@ -451,6 +485,10 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       let index = cells.firstIndex(of: rbScrollViewCell)
       else { return }
 
+    if pan.state == .changed, translation.x != 0.0 {
+      overlapState = translation.x > 0 ? .moveRight : .moveLeft
+    }
+
     cells[index].position += durationForTranslation(translation.x)
     if cells[index].position < 0 { cells[index].position = 0 }
     pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
@@ -460,6 +498,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     if pan.state == .ended {
       fixOverlaps()
+      overlapState = nil
     }
   }
 
@@ -469,6 +508,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     if pan.state == .began {
       selectCell(rbScrollViewCell)
+      overlapState = .resize
     }
 
     guard rbScrollViewCell.frame.maxX < contentSize.width,
@@ -484,6 +524,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     if pan.state == .ended {
       fixOverlaps()
+      overlapState = nil
     }
   }
 
