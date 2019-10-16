@@ -19,7 +19,7 @@ public protocol RBTapRecordViewDelegate: class {
 public class RBTapRecordView: UIView {
   private var runLoop: CADisplayLink!
   public var bpm: Double = 120
-
+  public var startPosition: Double = 0
   private var currentPosition: Double = 0
   private var currentDuration: Double = 0
   private var recordingStartPosition: Double = 0
@@ -51,7 +51,7 @@ public class RBTapRecordView: UIView {
   @objc func update() {
     guard hasStarted else { return }
     let currentTimestamp = runLoop.timestamp - startTimestamp
-    currentPosition = currentTimestamp / (bpm / 60.0)
+    currentPosition = currentTimestamp / (bpm / 60.0) + startPosition
 
     if isTouching {
       currentDuration = currentPosition - recordingStartPosition

@@ -34,7 +34,7 @@ class RBCell: RBScrollViewCell {
   }
 }
 
-class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollViewDataSource, RBScrollViewDelegate, RBTapRecordViewDelegate {
+class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollViewDataSource, RBScrollViewDelegate {
   let actionView = RBActionView(frame: .zero)
   let toolbarView = RBToolbarView(frame: .zero)
   let patternView = RBScrollView(frame: .zero)
@@ -60,6 +60,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     actionView.topAnchor.constraint(equalTo: view.topAnchor, constant: 16).isActive = true
     actionView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
     actionView.widthAnchor.constraint(equalToConstant: actionViewWidth).isActive = true
+    actionView.selectMode(at: mode.rawValue)
     actionView.delegate = self
 
     view.addSubview(toolbarView)
@@ -82,15 +83,24 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   }
 
   func reload() {
-    DispatchQueue.main.async {
+//    DispatchQueue.main.async {
       self.patternView.reloadData()
       self.patternView.fixOverlaps()
       self.patternView.snapRangeheadToLastCell()
-    }
+//    }
   }
 
   func updateToolbar() {
     switch mode {
+    case .record:
+      let toolbarMode = RecordToolbarMode(
+        props: RecordToolbarModeProps(
+          data: data,
+          rangeheadPosition: patternView.rangeheadView.position,
+          didAddRecordingCallback: recordToolbarDidAddRecording,
+          didUpdateRecordingCallback: recordToolbarDidUpdateRecording(duration:),
+          didEndRecordingCallback: recordToolbarDidEndRecording))
+      toolbarView.render(mode: toolbarMode)
     case .rhythm:
       if selectedRhythmData == nil {
         let toolbarMode = RhythmToolbarMode(
@@ -143,8 +153,6 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   func actionView(_ actionView: RBActionView, didSelect action: RBAction, sender: UIButton) {
     switch action {
     case .play:
-      return
-    case .record:
       return
     case .clear:
       selectedRhythmData = nil
@@ -224,26 +232,22 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     history.push()
   }
 
-  // MARK: RBTapRecordViewDelegate
+  // MARK: RecordToolbarModeView
 
-  func tapRecordView(_ tapRecordView: RBTapRecordView, didStartRecording position: Double) {
-    return
+  func recordToolbarDidAddRecording() {
+    patternView.reloadData()
   }
 
-  func tapRecordView(_ tapRecordView: RBTapRecordView, didUpdateRecording duration: Double) {
-    return
+  func recordToolbarDidUpdateRecording(duration: Double) {
+    let index = data.cells.count - 1
+    guard index >= 0 else { return }
+    patternView.updateDurationOfCell(at: index, duration: duration)
   }
 
-  func tapRecordView(_ tapRecordView: RBTapRecordView, didEndRecording duration: Double) {
-    return
-  }
-
-  func tapRecordViewDidPressDoneButton(_ tapRecordView: RBTapRecordView) {
-    return
-  }
-
-  func tapRecordViewDidPressCancelButton(_ tapRecordView: RBTapRecordView) {
-    return
+  func recordToolbarDidEndRecording() {
+    patternView.snapRangeheadToLastCell()
+    history.push()
+    updateToolbar()
   }
 
   // MARK: RhythmToolbarModeView
@@ -251,13 +255,13 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   func rhythmToolbar(didAdd rhythmData: RBRhythmData) {
     rhythmData.position = patternView.rangeheadView.position
     data.cells.append(rhythmData)
-    history.push()
     reload()
+    history.push()
   }
 
   func rhythmToolbar(didUpdate rhythmData: RBRhythmData) {
-    history.push()
     reload()
+    history.push()
   }
 
   // MARK: ArpToolbarModeView
