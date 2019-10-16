@@ -8,6 +8,45 @@
 
 import UIKit
 
+class RBHistory {
+  private var dataRef: RBPatternData
+  private(set) var stack: [[RBRhythmData]]
+  private(set) var cursor: Int
+  var limit: Int = 20
+
+  var canUndo: Bool {
+    return cursor > 0
+  }
+
+  var canRedo: Bool {
+    return cursor < stack.count - 1
+  }
+
+  init(dataRef: RBPatternData) {
+    self.dataRef = dataRef
+    self.stack = []
+    self.cursor = 0
+  }
+
+  func push() {
+    let snap = dataRef.cells.map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
+    stack = Array((Array(stack.prefix(cursor + 1)) + [snap]).suffix(limit))
+    cursor = stack.count - 1
+  }
+
+  func undo() -> [RBRhythmData]? {
+    guard canUndo else { return nil }
+    cursor -= 1
+    return stack[cursor]
+  }
+
+  func redo() -> [RBRhythmData]? {
+    guard canRedo else { return nil }
+    cursor += 1
+    return stack[cursor]
+  }
+}
+
 enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case rhythm
   case arp
@@ -104,7 +143,7 @@ enum RBModifierType: Int, CaseIterable, CustomStringConvertible {
   }
 }
 
-enum RBArp: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+enum RBArp: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case none
   case up
   case down
@@ -126,7 +165,7 @@ enum RBArp: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButtonin
   }
 }
 
-enum RBRatchet: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+enum RBRatchet: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case none
   case two
   case three
@@ -142,7 +181,7 @@ enum RBRatchet: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButt
   }
 }
 
-class RBRhythmData: Codable, NSCopying {
+class RBRhythmData: Codable, Equatable, NSCopying {
   var id: String
   var position: Double
   var duration: Double
@@ -174,6 +213,8 @@ class RBRhythmData: Codable, NSCopying {
     self.ratchet = ratchet
   }
 
+  // MARK: Codable
+
   required init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)
@@ -194,6 +235,8 @@ class RBRhythmData: Codable, NSCopying {
     try container.encode(ratchet, forKey: .ratchet)
   }
 
+  // MARK: NSCopynig
+
   func copy(with zone: NSZone? = nil) -> Any {
     return RBRhythmData(
       position: position,
@@ -201,6 +244,16 @@ class RBRhythmData: Codable, NSCopying {
       velocity: velocity,
       arp: arp,
       ratchet: ratchet)
+  }
+
+  // MARK: Equatable
+
+  static func == (lhs: RBRhythmData, rhs: RBRhythmData) -> Bool {
+    return lhs.position == rhs.position &&
+      lhs.duration == rhs.duration &&
+      lhs.velocity == rhs.velocity &&
+      lhs.arp == rhs.arp &&
+      lhs.ratchet == rhs.ratchet
   }
 }
 
