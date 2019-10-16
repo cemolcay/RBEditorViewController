@@ -43,6 +43,9 @@ public protocol RBScrollViewDelegate: class {
   func rbScrollViewDidUnselectCells(_ scrollView: RBScrollView)
   func rbScrollViewDidUpdatePlayhead(_ scrollView: RBScrollView)
   func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView)
+  func rbScrollViewDidMoveCell(_ scrollView: RBScrollView)
+  func rbScrollViewDidResizeCell(_ scrollView: RBScrollView)
+  func rbScrollViewDidQuantize(_ scrollView: RBScrollView)
 }
 
 enum RBOverlapState {
@@ -398,6 +401,8 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     setNeedsLayout()
     fixOverlaps()
+
+    rbDelegate?.rbScrollViewDidQuantize(self)
   }
 
   func fixOverlaps() {
@@ -451,7 +456,6 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     }
 
     setNeedsLayout()
-    snapRangeheadToLastCell()
   }
 
   func snapRangeheadToLastCell() {
@@ -504,17 +508,21 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       overlapState = translation.x > 0 ? .moveRight : .moveLeft
     }
 
-    cells[index].position += durationForTranslation(translation.x)
-    if cells[index].position < 0 { cells[index].position = 0 }
-    pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
+    if pan.state == .changed {
+      cells[index].position += durationForTranslation(translation.x)
+      if cells[index].position < 0 { cells[index].position = 0 }
+      pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
 
-    rbDelegate?.rbScrollView(self, didUpdate: rbScrollViewCell, at: index)
-    setNeedsLayout()
+      rbDelegate?.rbScrollView(self, didUpdate: rbScrollViewCell, at: index)
+    }
 
     if pan.state == .ended {
       fixOverlaps()
       overlapState = nil
+      rbDelegate?.rbScrollViewDidMoveCell(self)
     }
+
+    setNeedsLayout()
   }
 
   public func rbScrollViewCellDidResize(_ rbScrollViewCell: RBScrollViewCell, pan: UIPanGestureRecognizer) {
@@ -531,16 +539,20 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       let index = cells.firstIndex(of: rbScrollViewCell)
       else { return }
 
-    cells[index].duration += durationForTranslation(translation.x)
-    pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
+    if pan.state == .changed {
+      cells[index].duration += durationForTranslation(translation.x)
+      pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
 
-    rbDelegate?.rbScrollView(self, didUpdate: rbScrollViewCell, at: index)
-    setNeedsLayout()
+      rbDelegate?.rbScrollView(self, didUpdate: rbScrollViewCell, at: index)
+    }
 
     if pan.state == .ended {
       fixOverlaps()
       overlapState = nil
+      rbDelegate?.rbScrollViewDidResizeCell(self)
     }
+    
+    setNeedsLayout()
   }
 
   public func rbScrollViewCellDidTap(_ rbScrollViewCell: RBScrollViewCell) {

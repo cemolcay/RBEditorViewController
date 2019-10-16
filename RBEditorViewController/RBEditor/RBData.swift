@@ -70,6 +70,8 @@ enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case record
   case clear
   case quantize
+  case undo
+  case redo
 
   var description: String {
     switch self {
@@ -77,6 +79,8 @@ enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
     case .record: return "Record"
     case .clear: return "Clear"
     case .quantize: return "Quantize"
+    case .undo: return "Undo"
+    case .redo: return "Redo"
     }
   }
 }

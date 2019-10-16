@@ -24,8 +24,8 @@ extension ToolbarButtoning where Self: RawRepresentable, Self.RawValue == Int  {
 }
 
 protocol RBActionViewDelegate: class {
-  func actionView(_ actionView: RBActionView, didSelect action: RBAction)
-  func actionView(_ actionView: RBActionView, didSelect mode: RBMode)
+  func actionView(_ actionView: RBActionView, didSelect action: RBAction, sender: UIButton)
+  func actionView(_ actionView: RBActionView, didSelect mode: RBMode, sender: UIButton)
 }
 
 class RBActionView: UIView {
@@ -110,13 +110,13 @@ class RBActionView: UIView {
 
   @IBAction func actionButtonDidPress(sender: UIButton) {
     guard let action = RBAction(rawValue: sender.tag) else { return }
-    delegate?.actionView(self, didSelect: action)
+    delegate?.actionView(self, didSelect: action, sender: sender)
   }
 
   @IBAction func modeButtonDidPress(sender: UIButton) {
     selectMode(at: sender.tag)
     guard let mode = RBMode(rawValue: sender.tag) else { return }
-    delegate?.actionView(self, didSelect: mode)
+    delegate?.actionView(self, didSelect: mode, sender: sender)
   }
 
   func selectMode(at index: Int) {
