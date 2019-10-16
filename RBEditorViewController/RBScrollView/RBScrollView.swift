@@ -401,46 +401,61 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   }
 
   func fixOverlaps() {
-    guard cells.count > 0, let overlapState = overlapState else { return }
+    guard cells.count > 0,
+      let overlapState = overlapState,
+      let editingCellIndex = selectedCellIndex
+      else { return }
 
-    let sorted = cells.sorted(by: { $0.position < $1.position })
-    for index in 0..<sorted.count-1 {
-      let cell = sorted[index]
-      let nextCell = sorted[index + 1]
-      if cell.position + cell.duration > nextCell.position {
-        switch overlapState {
-        case .resize, .moveRight:
-          guard let i = cells.firstIndex(of: nextCell) else { continue }
-          // Move cell to right
-          let oldPosition = cells[i].position
-          cells[i].position = cell.position + cell.duration
-          // Reduce duration
-          let positionDiff = cells[i].position - oldPosition
-          cells[i].duration -= positionDiff
-          // Remove cell if needed
-          if (cells[i].duration <= 0) {
-            cells[i].removeFromSuperview()
-            cells.remove(at: i)
-            rbDelegate?.rbScrollView(self, didDelete: nextCell, at: i)
-          } else { // Update cell
-            rbDelegate?.rbScrollView(self, didUpdate: cells[i], at: i)
-          }
-        case .moveLeft:
-          guard let i = cells.firstIndex(of: cell) else { continue }
-          cells[i].duration = nextCell.position - cells[i].position
-          // Remove cell if needed
-          if (cells[i].duration <= 0) {
-            cells[i].removeFromSuperview()
-            cells.remove(at: i)
-            rbDelegate?.rbScrollView(self, didDelete: cell, at: i)
-          } else { // Update cell
-            rbDelegate?.rbScrollView(self, didUpdate: cells[i], at: i)
-          }
+    let editingCell = cells[editingCellIndex]
+    let overlappingCells = cells.filter({ editingCell.frame.intersects($0.frame) && ($0 != editingCell) })
+
+    for overlappingCell in overlappingCells {
+      guard let overlappingCellIndex = cells.firstIndex(of: overlappingCell) else { continue }
+
+      // Check if overlapping a cell completely.
+      if editingCell.position < overlappingCell.position,
+        editingCell.position + editingCell.duration > overlappingCell.position + overlappingCell.duration {
+        // Delete overlapped cell
+        cells.remove(at: overlappingCellIndex)
+        overlappingCell.removeFromSuperview()
+        rbDelegate?.rbScrollView(self, didDelete: overlappingCell, at: overlappingCellIndex)
+        continue
+      }
+
+      // Check overlap state
+      switch overlapState {
+      case .moveRight, .resize:
+        if editingCell.position + editingCell.duration > overlappingCell.position {
+          // Update position
+          let oldPosition = overlappingCell.position
+          overlappingCell.position = editingCell.position + editingCell.duration
+          // Update duration
+          let positionDiff = overlappingCell.position - oldPosition
+          overlappingCell.duration = overlappingCell.duration - positionDiff
+          // Inform delegate
+          rbDelegate?.rbScrollView(self, didUpdate: overlappingCell, at: overlappingCellIndex)
         }
+      case .moveLeft:
+        if overlappingCell.position + overlappingCell.duration > editingCell.position {
+          overlappingCell.duration = editingCell.position - overlappingCell.position
+          rbDelegate?.rbScrollView(self, didUpdate: overlappingCell, at: overlappingCellIndex)
+        }
+      }
+
+      // Make sure cell's duration is valid
+      if overlappingCell.duration <= 0 {
+        cells.remove(at: overlappingCellIndex)
+        overlappingCell.removeFromSuperview()
+        rbDelegate?.rbScrollView(self, didDelete: overlappingCell, at: overlappingCellIndex)
       }
     }
 
     setNeedsLayout()
+    snapRangeheadToLastCell()
+  }
+
+  func snapRangeheadToLastCell() {
+    rangeheadView.position = cells.map({ $0.position + $0.duration }).sorted().last ?? 0
   }
 
   // MARK: Cell Selection
