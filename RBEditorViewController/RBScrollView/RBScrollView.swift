@@ -301,6 +301,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   public func updateDurationOfCell(at index: Int, duration: Double) {
     cells[index].duration = duration
+    setNeedsLayout()
   }
 
   public func reloadData() {
@@ -407,7 +408,6 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   func fixOverlaps() {
     guard cells.count > 0,
-      let overlapState = overlapState,
       let editingCellIndex = selectedCellIndex
       else { return }
 
@@ -426,6 +426,8 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
         rbDelegate?.rbScrollView(self, didDelete: overlappingCell, at: overlappingCellIndex)
         continue
       }
+
+      let overlapState = self.overlapState ?? .resize
 
       // Check overlap state
       switch overlapState {
@@ -559,7 +561,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     if rbScrollViewCell.isSelected {
       unselectCells()
     } else {
-      selectCell(rbScrollViewCell)
+      selectCell(rbScrollViewCell) 
     }
   }
 

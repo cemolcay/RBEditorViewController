@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		53144BED2357131E0021DCD9 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53144BEC2357131E0021DCD9 /* Tests.swift */; };
+		53144BF5235726900021DCD9 /* RecordToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53144BF4235726900021DCD9 /* RecordToolbarMode.swift */; };
 		53868D91233B448400CDB8F4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53868D90233B448400CDB8F4 /* AppDelegate.swift */; };
 		53868D96233B448400CDB8F4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53868D94233B448400CDB8F4 /* Main.storyboard */; };
 		53868D98233B448500CDB8F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53868D97233B448500CDB8F4 /* Assets.xcassets */; };
@@ -41,6 +42,7 @@
 		53144BEA2357131E0021DCD9 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		53144BEC2357131E0021DCD9 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
 		53144BEE2357131E0021DCD9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		53144BF4235726900021DCD9 /* RecordToolbarMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordToolbarMode.swift; sourceTree = "<group>"; };
 		53868D8D233B448400CDB8F4 /* RBEditorViewController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RBEditorViewController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		53868D90233B448400CDB8F4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		53868D95233B448400CDB8F4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -152,6 +154,7 @@
 				5392196B2355E013003A74FF /* ArpToolbarMode.swift */,
 				5392196D2355E01E003A74FF /* SnapshotToolbarMode.swift */,
 				5392196F2355E039003A74FF /* RatchetToolbarMode.swift */,
+				53144BF4235726900021DCD9 /* RecordToolbarMode.swift */,
 			);
 			path = RBToolbarMode;
 			sourceTree = "<group>";
@@ -275,6 +278,7 @@
 				5392196E2355E01E003A74FF /* SnapshotToolbarMode.swift in Sources */,
 				53868D91233B448400CDB8F4 /* AppDelegate.swift in Sources */,
 				5392196C2355E013003A74FF /* ArpToolbarMode.swift in Sources */,
+				53144BF5235726900021DCD9 /* RecordToolbarMode.swift in Sources */,
 				5392196A2355E006003A74FF /* VelocityToolbarMode.swift in Sources */,
 				539219612355DD18003A74FF /* RBData.swift in Sources */,
 				53868DB5233B559000CDB8F4 /* RBScrollViewCell.swift in Sources */,

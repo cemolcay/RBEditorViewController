@@ -48,6 +48,7 @@ class RBHistory {
 }
 
 enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+  case record
   case rhythm
   case arp
   case ratchet
@@ -56,6 +57,7 @@ enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
 
   var description: String {
     switch self {
+    case .record: return "Record"
     case .rhythm: return "Rtm"
     case .arp: return "Arp"
     case .ratchet: return "Rat"
@@ -67,7 +69,6 @@ enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
 
 enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case play
-  case record
   case clear
   case quantize
   case undo
@@ -76,7 +77,6 @@ enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   var description: String {
     switch self {
     case .play: return "Play"
-    case .record: return "Record"
     case .clear: return "Clear"
     case .quantize: return "Quantize"
     case .undo: return "Undo"
@@ -296,20 +296,24 @@ class RBSnapshotData: Codable {
 class RBPatternData: Codable {
   var id: String
   var cells: [RBRhythmData]
+  var bpm: Double
   var snapshots: RBSnapshotData
 
   enum CodingKeys: CodingKey {
     case id
     case cells
+    case bpm
     case snapshots
   }
 
   init(
     id: String? = nil,
     cells: [RBRhythmData] = [],
+    bpm: Double = 120,
     snapshots: RBSnapshotData = RBSnapshotData()) {
     self.id = id ?? UUID().uuidString
     self.cells = cells
+    self.bpm = bpm
     self.snapshots = snapshots
   }
 
@@ -317,6 +321,7 @@ class RBPatternData: Codable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)
     cells = try values.decode([RBRhythmData].self, forKey: .cells)
+    bpm = try values.decode(Double.self, forKey: .bpm)
     snapshots = try values.decode(RBSnapshotData.self, forKey: .snapshots)
   }
 
@@ -324,6 +329,7 @@ class RBPatternData: Codable {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
     try container.encode(cells, forKey: .cells)
+    try container.encode(bpm, forKey: .bpm)
     try container.encode(snapshots, forKey: .snapshots)
   }
 
