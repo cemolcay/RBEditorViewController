@@ -30,7 +30,7 @@ public class RBPlayheadView: UIView {
   /// Current position on timetable. Based on beats.
   @objc public dynamic var position: Double = 0.0 { didSet{ updatePosition() }}
   /// MIDITimeTableMeasureView's width that used in layout playhead in timetable.
-  public var measureBeatWidth: CGFloat = 0.0 { didSet{ updatePosition() }}
+  public var measureWidth: CGFloat = 0.0 { didSet{ updatePosition() }}
   /// MIDITimeTableMeasureView's height that used in layout playhead in timetable.
   public var measureHeight: CGFloat = 0.0 { didSet{ updatePosition() }}
   /// MIDITimeTableHeaderCellView's width that used in layout playhead in timetable.
@@ -114,7 +114,7 @@ public class RBPlayheadView: UIView {
 
   private func updatePosition() {
     frame = CGRect(
-      x: rowHeaderWidth + (CGFloat(position) * measureBeatWidth) - (frame.size.width / 2),
+      x: rowHeaderWidth + (CGFloat(position) * measureWidth) - (frame.size.width / 2),
       y: 1,
       width: measureHeight,
       height: measureHeight - 1)

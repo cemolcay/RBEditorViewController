@@ -52,7 +52,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     view.addSubview(actionView)
     actionView.translatesAutoresizingMaskIntoConstraints = false
     actionView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-    actionView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+    actionView.topAnchor.constraint(equalTo: view.topAnchor, constant: 16).isActive = true
     actionView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
     actionView.widthAnchor.constraint(equalToConstant: actionViewWidth).isActive = true
     actionView.delegate = self
@@ -69,7 +69,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     patternView.translatesAutoresizingMaskIntoConstraints = false
     patternView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
     patternView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-    patternView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+    patternView.topAnchor.constraint(equalTo: view.topAnchor, constant: 16).isActive = true
     patternView.bottomAnchor.constraint(equalTo: toolbarView.topAnchor).isActive = true
     patternView.rbDelegate = self
     patternView.rbDataSource = self
