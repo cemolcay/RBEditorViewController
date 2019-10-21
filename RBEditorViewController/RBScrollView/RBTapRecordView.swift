@@ -77,6 +77,7 @@ public class RBTapRecordView: UIView {
     if !hasStarted {
       hasStarted = true
       startTimestamp = runLoop.timestamp
+      update()
     }
 
     isTouching = true

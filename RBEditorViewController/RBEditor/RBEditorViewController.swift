@@ -217,7 +217,9 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   }
 
   func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView) {
-
+    if mode == .record {
+      updateToolbar()
+    }
   }
 
   func rbScrollViewDidMoveCell(_ scrollView: RBScrollView) {
