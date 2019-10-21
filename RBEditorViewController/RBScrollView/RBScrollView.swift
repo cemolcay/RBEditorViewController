@@ -8,6 +8,15 @@
 
 import UIKit
 
+extension Collection {
+  subscript(safe index: Index) -> Element? {
+    if indices.contains(index) {
+      return self[index]
+    }
+    return nil
+  }
+}
+
 public class MeasureTextLayer: CATextLayer {
 
   public override init() {
@@ -86,6 +95,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   private var cells: [RBScrollViewCell] = []
   private var selectedCellIndex: Int?
+  private var movingCellStartPosition: Double?
   private var overlapState: RBOverlapState?
 
   public var playheadView = RBPlayheadView(frame: .zero)
@@ -406,13 +416,26 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     rbDelegate?.rbScrollViewDidQuantize(self)
   }
 
+  func intersects(lhs: RBScrollViewCell, rhs: RBScrollViewCell) -> Bool {
+    let threshold: CGFloat = 0.001
+    let lhsEnd = lhs.position + lhs.duration
+    let rhsEnd = rhs.position + rhs.duration
+    if lhs.position < rhs.position {
+      return lhsEnd > rhs.position
+    } else if lhs.position > rhs.position {
+      return rhsEnd > lhs.position
+    } else {
+      return true
+    }
+  }
+
   func fixOverlaps() {
     guard cells.count > 0,
-      let editingCellIndex = selectedCellIndex
+      let editingCellIndex = selectedCellIndex,
+      let editingCell = cells[safe: editingCellIndex]
       else { return }
 
-    let editingCell = cells[editingCellIndex]
-    let overlappingCells = cells.filter({ editingCell.frame.intersects($0.frame) && ($0 != editingCell) })
+    let overlappingCells = cells.filter({ intersects(lhs: editingCell, rhs: $0) && ($0 != editingCell) })
 
     for overlappingCell in overlappingCells {
       guard let overlappingCellIndex = cells.firstIndex(of: overlappingCell) else { continue }
@@ -499,6 +522,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     if pan.state == .began {
       selectCell(rbScrollViewCell)
+      movingCellStartPosition = rbScrollViewCell.position
     }
 
     guard rbScrollViewCell.frame.maxX < contentSize.width,
@@ -506,21 +530,20 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       let index = cells.firstIndex(of: rbScrollViewCell)
       else { return }
 
-    if pan.state == .changed, translation.x != 0.0 {
-      overlapState = translation.x > 0 ? .moveRight : .moveLeft
-    }
-
-    if pan.state == .changed {
+    panChangeState: if pan.state == .changed {
       cells[index].position += durationForTranslation(translation.x)
       if cells[index].position < 0 { cells[index].position = 0 }
       pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
-
       rbDelegate?.rbScrollView(self, didUpdate: rbScrollViewCell, at: index)
+
+      guard let startPosition = movingCellStartPosition else { break panChangeState }
+      overlapState = cells[index].position > startPosition ? .moveRight : .moveLeft
     }
 
     if pan.state == .ended {
       fixOverlaps()
       overlapState = nil
+      movingCellStartPosition = nil
       rbDelegate?.rbScrollViewDidMoveCell(self)
     }
 

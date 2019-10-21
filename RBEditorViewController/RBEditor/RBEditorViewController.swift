@@ -42,8 +42,8 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   var selectedRhythmData: RBRhythmData?
   var data: RBPatternData = RBPatternData()
   var history: RBHistory!
-  let actionViewWidth: CGFloat = 60
-  let toolbarHeight: CGFloat = 60
+  let actionViewWidth: CGFloat = 80
+  let toolbarHeight: CGFloat = 80
 
   // MARK: Lifecycle
 
@@ -56,9 +56,9 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
 
     view.addSubview(actionView)
     actionView.translatesAutoresizingMaskIntoConstraints = false
-    actionView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-    actionView.topAnchor.constraint(equalTo: view.topAnchor, constant: 16).isActive = true
-    actionView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+    actionView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor).isActive = true
+    actionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+    actionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
     actionView.widthAnchor.constraint(equalToConstant: actionViewWidth).isActive = true
     actionView.selectMode(at: mode.rawValue)
     actionView.delegate = self
@@ -66,16 +66,16 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     view.addSubview(toolbarView)
     toolbarView.translatesAutoresizingMaskIntoConstraints = false
     toolbarView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
-    toolbarView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-    toolbarView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+    toolbarView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor).isActive = true
+    toolbarView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
     toolbarView.heightAnchor.constraint(equalToConstant: toolbarHeight).isActive = true
     updateToolbar()
 
     view.addSubview(patternView)
     patternView.translatesAutoresizingMaskIntoConstraints = false
     patternView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
-    patternView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-    patternView.topAnchor.constraint(equalTo: view.topAnchor, constant: 16).isActive = true
+    patternView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor).isActive = true
+    patternView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
     patternView.bottomAnchor.constraint(equalTo: toolbarView.topAnchor).isActive = true
     patternView.rbDelegate = self
     patternView.rbDataSource = self
