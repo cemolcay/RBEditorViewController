@@ -8,24 +8,25 @@
 
 /* Begin PBXBuildFile section */
 		53144BED2357131E0021DCD9 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53144BEC2357131E0021DCD9 /* Tests.swift */; };
-		53144BF5235726900021DCD9 /* RecordToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53144BF4235726900021DCD9 /* RecordToolbarMode.swift */; };
 		53868D91233B448400CDB8F4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53868D90233B448400CDB8F4 /* AppDelegate.swift */; };
 		53868D96233B448400CDB8F4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53868D94233B448400CDB8F4 /* Main.storyboard */; };
 		53868D98233B448500CDB8F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53868D97233B448500CDB8F4 /* Assets.xcassets */; };
 		53868D9B233B448500CDB8F4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53868D99233B448500CDB8F4 /* LaunchScreen.storyboard */; };
-		53868DB4233B559000CDB8F4 /* RBScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53868DB0233B559000CDB8F4 /* RBScrollView.swift */; };
-		53868DB5233B559000CDB8F4 /* RBScrollViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53868DB1233B559000CDB8F4 /* RBScrollViewCell.swift */; };
-		53868DB6233B559000CDB8F4 /* RBPlayheadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53868DB2233B559000CDB8F4 /* RBPlayheadView.swift */; };
-		53868DB7233B559000CDB8F4 /* RBTapRecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53868DB3233B559000CDB8F4 /* RBTapRecordView.swift */; };
-		5392195F2355DD18003A74FF /* RBToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539219552355DD18003A74FF /* RBToolbarView.swift */; };
-		539219602355DD18003A74FF /* RBEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539219562355DD18003A74FF /* RBEditorViewController.swift */; };
-		539219612355DD18003A74FF /* RBData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539219572355DD18003A74FF /* RBData.swift */; };
-		539219622355DD18003A74FF /* RBActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539219582355DD18003A74FF /* RBActionView.swift */; };
-		539219682355DD50003A74FF /* RhythmToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539219672355DD50003A74FF /* RhythmToolbarMode.swift */; };
-		5392196A2355E006003A74FF /* VelocityToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539219692355E006003A74FF /* VelocityToolbarMode.swift */; };
-		5392196C2355E013003A74FF /* ArpToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5392196B2355E013003A74FF /* ArpToolbarMode.swift */; };
-		5392196E2355E01E003A74FF /* SnapshotToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5392196D2355E01E003A74FF /* SnapshotToolbarMode.swift */; };
-		539219702355E039003A74FF /* RatchetToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5392196F2355E039003A74FF /* RatchetToolbarMode.swift */; };
+		53899A7C2366E1D80005094F /* RBScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6B2366E1D80005094F /* RBScrollView.swift */; };
+		53899A7D2366E1D80005094F /* RBScrollViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6C2366E1D80005094F /* RBScrollViewCell.swift */; };
+		53899A7E2366E1D80005094F /* RBPlayheadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6D2366E1D80005094F /* RBPlayheadView.swift */; };
+		53899A7F2366E1D80005094F /* RBTapRecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6E2366E1D80005094F /* RBTapRecordView.swift */; };
+		53899A802366E1D80005094F /* RhythmToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A702366E1D80005094F /* RhythmToolbarMode.swift */; };
+		53899A812366E1D80005094F /* TransposeToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A712366E1D80005094F /* TransposeToolbarMode.swift */; };
+		53899A822366E1D80005094F /* ArpToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A722366E1D80005094F /* ArpToolbarMode.swift */; };
+		53899A832366E1D80005094F /* RatchetToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A732366E1D80005094F /* RatchetToolbarMode.swift */; };
+		53899A842366E1D80005094F /* RecordToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A742366E1D80005094F /* RecordToolbarMode.swift */; };
+		53899A852366E1D80005094F /* VelocityToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A752366E1D80005094F /* VelocityToolbarMode.swift */; };
+		53899A862366E1D80005094F /* SnapshotToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A762366E1D80005094F /* SnapshotToolbarMode.swift */; };
+		53899A872366E1D80005094F /* RBToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A782366E1D80005094F /* RBToolbarView.swift */; };
+		53899A882366E1D80005094F /* RBEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A792366E1D80005094F /* RBEditorViewController.swift */; };
+		53899A892366E1D80005094F /* RBData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A7A2366E1D80005094F /* RBData.swift */; };
+		53899A8A2366E1D80005094F /* RBActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A7B2366E1D80005094F /* RBActionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,26 +43,27 @@
 		53144BEA2357131E0021DCD9 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		53144BEC2357131E0021DCD9 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
 		53144BEE2357131E0021DCD9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		53144BF4235726900021DCD9 /* RecordToolbarMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordToolbarMode.swift; sourceTree = "<group>"; };
 		53868D8D233B448400CDB8F4 /* RBEditorViewController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RBEditorViewController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		53868D90233B448400CDB8F4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		53868D95233B448400CDB8F4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		53868D97233B448500CDB8F4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53868D9A233B448500CDB8F4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		53868D9C233B448500CDB8F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		53868DB0233B559000CDB8F4 /* RBScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBScrollView.swift; sourceTree = "<group>"; };
-		53868DB1233B559000CDB8F4 /* RBScrollViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBScrollViewCell.swift; sourceTree = "<group>"; };
-		53868DB2233B559000CDB8F4 /* RBPlayheadView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBPlayheadView.swift; sourceTree = "<group>"; };
-		53868DB3233B559000CDB8F4 /* RBTapRecordView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBTapRecordView.swift; sourceTree = "<group>"; };
-		539219552355DD18003A74FF /* RBToolbarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBToolbarView.swift; sourceTree = "<group>"; };
-		539219562355DD18003A74FF /* RBEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBEditorViewController.swift; sourceTree = "<group>"; };
-		539219572355DD18003A74FF /* RBData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBData.swift; sourceTree = "<group>"; };
-		539219582355DD18003A74FF /* RBActionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBActionView.swift; sourceTree = "<group>"; };
-		539219672355DD50003A74FF /* RhythmToolbarMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhythmToolbarMode.swift; sourceTree = "<group>"; };
-		539219692355E006003A74FF /* VelocityToolbarMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VelocityToolbarMode.swift; sourceTree = "<group>"; };
-		5392196B2355E013003A74FF /* ArpToolbarMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArpToolbarMode.swift; sourceTree = "<group>"; };
-		5392196D2355E01E003A74FF /* SnapshotToolbarMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotToolbarMode.swift; sourceTree = "<group>"; };
-		5392196F2355E039003A74FF /* RatchetToolbarMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatchetToolbarMode.swift; sourceTree = "<group>"; };
+		53899A6B2366E1D80005094F /* RBScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBScrollView.swift; sourceTree = "<group>"; };
+		53899A6C2366E1D80005094F /* RBScrollViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBScrollViewCell.swift; sourceTree = "<group>"; };
+		53899A6D2366E1D80005094F /* RBPlayheadView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBPlayheadView.swift; sourceTree = "<group>"; };
+		53899A6E2366E1D80005094F /* RBTapRecordView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBTapRecordView.swift; sourceTree = "<group>"; };
+		53899A702366E1D80005094F /* RhythmToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RhythmToolbarMode.swift; sourceTree = "<group>"; };
+		53899A712366E1D80005094F /* TransposeToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransposeToolbarMode.swift; sourceTree = "<group>"; };
+		53899A722366E1D80005094F /* ArpToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArpToolbarMode.swift; sourceTree = "<group>"; };
+		53899A732366E1D80005094F /* RatchetToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RatchetToolbarMode.swift; sourceTree = "<group>"; };
+		53899A742366E1D80005094F /* RecordToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordToolbarMode.swift; sourceTree = "<group>"; };
+		53899A752366E1D80005094F /* VelocityToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VelocityToolbarMode.swift; sourceTree = "<group>"; };
+		53899A762366E1D80005094F /* SnapshotToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SnapshotToolbarMode.swift; sourceTree = "<group>"; };
+		53899A782366E1D80005094F /* RBToolbarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBToolbarView.swift; sourceTree = "<group>"; };
+		53899A792366E1D80005094F /* RBEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBEditorViewController.swift; sourceTree = "<group>"; };
+		53899A7A2366E1D80005094F /* RBData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBData.swift; sourceTree = "<group>"; };
+		53899A7B2366E1D80005094F /* RBActionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBActionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,9 +115,9 @@
 			isa = PBXGroup;
 			children = (
 				53868D90233B448400CDB8F4 /* AppDelegate.swift */,
-				53868DAF233B559000CDB8F4 /* RBScrollView */,
-				539219542355DD18003A74FF /* RBEditor */,
-				5392195E2355DD18003A74FF /* RBToolbarMode */,
+				53899A772366E1D80005094F /* RBEditor */,
+				53899A6A2366E1D80005094F /* RBScrollView */,
+				53899A6F2366E1D80005094F /* RBToolbarMode */,
 				53868D94233B448400CDB8F4 /* Main.storyboard */,
 				53868D97233B448500CDB8F4 /* Assets.xcassets */,
 				53868D99233B448500CDB8F4 /* LaunchScreen.storyboard */,
@@ -124,39 +126,40 @@
 			path = RBEditorViewController;
 			sourceTree = "<group>";
 		};
-		53868DAF233B559000CDB8F4 /* RBScrollView */ = {
+		53899A6A2366E1D80005094F /* RBScrollView */ = {
 			isa = PBXGroup;
 			children = (
-				53868DB0233B559000CDB8F4 /* RBScrollView.swift */,
-				53868DB1233B559000CDB8F4 /* RBScrollViewCell.swift */,
-				53868DB2233B559000CDB8F4 /* RBPlayheadView.swift */,
-				53868DB3233B559000CDB8F4 /* RBTapRecordView.swift */,
+				53899A6B2366E1D80005094F /* RBScrollView.swift */,
+				53899A6C2366E1D80005094F /* RBScrollViewCell.swift */,
+				53899A6D2366E1D80005094F /* RBPlayheadView.swift */,
+				53899A6E2366E1D80005094F /* RBTapRecordView.swift */,
 			);
 			path = RBScrollView;
 			sourceTree = "<group>";
 		};
-		539219542355DD18003A74FF /* RBEditor */ = {
+		53899A6F2366E1D80005094F /* RBToolbarMode */ = {
 			isa = PBXGroup;
 			children = (
-				539219572355DD18003A74FF /* RBData.swift */,
-				539219562355DD18003A74FF /* RBEditorViewController.swift */,
-				539219552355DD18003A74FF /* RBToolbarView.swift */,
-				539219582355DD18003A74FF /* RBActionView.swift */,
-			);
-			path = RBEditor;
-			sourceTree = "<group>";
-		};
-		5392195E2355DD18003A74FF /* RBToolbarMode */ = {
-			isa = PBXGroup;
-			children = (
-				539219672355DD50003A74FF /* RhythmToolbarMode.swift */,
-				539219692355E006003A74FF /* VelocityToolbarMode.swift */,
-				5392196B2355E013003A74FF /* ArpToolbarMode.swift */,
-				5392196D2355E01E003A74FF /* SnapshotToolbarMode.swift */,
-				5392196F2355E039003A74FF /* RatchetToolbarMode.swift */,
-				53144BF4235726900021DCD9 /* RecordToolbarMode.swift */,
+				53899A702366E1D80005094F /* RhythmToolbarMode.swift */,
+				53899A712366E1D80005094F /* TransposeToolbarMode.swift */,
+				53899A722366E1D80005094F /* ArpToolbarMode.swift */,
+				53899A732366E1D80005094F /* RatchetToolbarMode.swift */,
+				53899A742366E1D80005094F /* RecordToolbarMode.swift */,
+				53899A752366E1D80005094F /* VelocityToolbarMode.swift */,
+				53899A762366E1D80005094F /* SnapshotToolbarMode.swift */,
 			);
 			path = RBToolbarMode;
+			sourceTree = "<group>";
+		};
+		53899A772366E1D80005094F /* RBEditor */ = {
+			isa = PBXGroup;
+			children = (
+				53899A782366E1D80005094F /* RBToolbarView.swift */,
+				53899A792366E1D80005094F /* RBEditorViewController.swift */,
+				53899A7A2366E1D80005094F /* RBData.swift */,
+				53899A7B2366E1D80005094F /* RBActionView.swift */,
+			);
+			path = RBEditor;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -268,21 +271,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				539219622355DD18003A74FF /* RBActionView.swift in Sources */,
-				53868DB7233B559000CDB8F4 /* RBTapRecordView.swift in Sources */,
-				539219702355E039003A74FF /* RatchetToolbarMode.swift in Sources */,
-				53868DB6233B559000CDB8F4 /* RBPlayheadView.swift in Sources */,
-				5392195F2355DD18003A74FF /* RBToolbarView.swift in Sources */,
-				539219602355DD18003A74FF /* RBEditorViewController.swift in Sources */,
-				539219682355DD50003A74FF /* RhythmToolbarMode.swift in Sources */,
-				5392196E2355E01E003A74FF /* SnapshotToolbarMode.swift in Sources */,
+				53899A892366E1D80005094F /* RBData.swift in Sources */,
+				53899A802366E1D80005094F /* RhythmToolbarMode.swift in Sources */,
+				53899A7D2366E1D80005094F /* RBScrollViewCell.swift in Sources */,
+				53899A822366E1D80005094F /* ArpToolbarMode.swift in Sources */,
 				53868D91233B448400CDB8F4 /* AppDelegate.swift in Sources */,
-				5392196C2355E013003A74FF /* ArpToolbarMode.swift in Sources */,
-				53144BF5235726900021DCD9 /* RecordToolbarMode.swift in Sources */,
-				5392196A2355E006003A74FF /* VelocityToolbarMode.swift in Sources */,
-				539219612355DD18003A74FF /* RBData.swift in Sources */,
-				53868DB5233B559000CDB8F4 /* RBScrollViewCell.swift in Sources */,
-				53868DB4233B559000CDB8F4 /* RBScrollView.swift in Sources */,
+				53899A862366E1D80005094F /* SnapshotToolbarMode.swift in Sources */,
+				53899A832366E1D80005094F /* RatchetToolbarMode.swift in Sources */,
+				53899A872366E1D80005094F /* RBToolbarView.swift in Sources */,
+				53899A882366E1D80005094F /* RBEditorViewController.swift in Sources */,
+				53899A842366E1D80005094F /* RecordToolbarMode.swift in Sources */,
+				53899A8A2366E1D80005094F /* RBActionView.swift in Sources */,
+				53899A7F2366E1D80005094F /* RBTapRecordView.swift in Sources */,
+				53899A852366E1D80005094F /* VelocityToolbarMode.swift in Sources */,
+				53899A812366E1D80005094F /* TransposeToolbarMode.swift in Sources */,
+				53899A7E2366E1D80005094F /* RBPlayheadView.swift in Sources */,
+				53899A7C2366E1D80005094F /* RBScrollView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

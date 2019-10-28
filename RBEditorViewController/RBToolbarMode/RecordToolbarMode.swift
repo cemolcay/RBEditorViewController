@@ -16,12 +16,12 @@ class RecordToolbarModeProps: RBToolbarModeProps {
   var didEndRecordingCallback: (() -> Void)?
 
   required init() {
-    self.data = RBPatternData()
+    self.data = RBPatternData(name: "recording")
     self.rangeheadPosition = 0
   }
 
   init(
-    data: RBPatternData = RBPatternData(),
+    data: RBPatternData = RBPatternData(name: "recording"),
     rangeheadPosition: Double = 0,
     didAddRecordingCallback: (() -> Void)?,
     didUpdateRecordingCallback: ((Double) -> Void)?,
@@ -40,7 +40,7 @@ class RecordToolbarModeView: RBToolbarModeView<RecordToolbarModeProps>, RBTapRec
   override func render() {
     super.render()
     let recordView = RBTapRecordView(frame: .zero)
-    recordView.bpm = props.data.bpm
+    recordView.bpm = props.data.tempo.bpm
     recordView.startPosition = props.rangeheadPosition
     recordView.delegate = self
 

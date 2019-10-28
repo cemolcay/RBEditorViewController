@@ -8,15 +8,6 @@
 
 import UIKit
 
-extension Collection {
-  subscript(safe index: Index) -> Element? {
-    if indices.contains(index) {
-      return self[index]
-    }
-    return nil
-  }
-}
-
 public class MeasureTextLayer: CATextLayer {
 
   public override init() {
@@ -70,7 +61,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   public var minMeasureWidth: CGFloat = 50
   public var maxMeasureWidth: CGFloat = 150
   public var measureHeight: CGFloat = 24
-  public var cellVerticalPadding: CGFloat = 16
+  public var cellVerticalPadding: CGFloat = 8
   public var timeSignatureBeatCount: Int = 4
   public var measureLayer = CALayer()
 
@@ -417,7 +408,6 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   }
 
   func intersects(lhs: RBScrollViewCell, rhs: RBScrollViewCell) -> Bool {
-    let threshold: CGFloat = 0.001
     let lhsEnd = lhs.position + lhs.duration
     let rhsEnd = rhs.position + rhs.duration
     if lhs.position < rhs.position {
@@ -485,6 +475,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   func snapRangeheadToLastCell() {
     rangeheadView.position = cells.map({ $0.position + $0.duration }).sorted().last ?? 0
+    rbDelegate?.rbScrollViewDidUpdateRangehead(self)
   }
 
   // MARK: Cell Selection

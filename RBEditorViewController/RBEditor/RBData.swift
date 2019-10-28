@@ -8,6 +8,21 @@
 
 import UIKit
 
+extension Collection {
+  /// Returns the element at the specified index iff it is within bounds, otherwise nil.
+  subscript(safe index: Index) -> Element? {
+    return indices.contains(index) ? self[index] : nil
+  }
+}
+
+class Tempo: Codable {
+  var bpm: Double
+
+  init(bpm: Double = 120) {
+    self.bpm = bpm
+  }
+}
+
 class RBHistory {
   private var dataRef: RBPatternData
   private(set) var stack: [[RBRhythmData]]
@@ -53,6 +68,7 @@ enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case arp
   case ratchet
   case velocity
+  case transpose
   case snapshots
 
   var description: String {
@@ -62,13 +78,13 @@ enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
     case .arp: return "Arp"
     case .ratchet: return "Rat"
     case .velocity: return "Vel"
+    case .transpose: return "Trs"
     case .snapshots: return "Snap"
     }
   }
 }
 
 enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
-  case play
   case clear
   case quantize
   case undo
@@ -76,7 +92,6 @@ enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
 
   var description: String {
     switch self {
-    case .play: return "Play"
     case .clear: return "Clear"
     case .quantize: return "Quantize"
     case .undo: return "Undo"
@@ -175,6 +190,15 @@ enum RBRatchet: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, 
   case three
   case four
 
+  var count: Int {
+    switch self {
+    case .none: return 1
+    case .two: return 2
+    case .three: return 3
+    case .four: return 4
+    }
+  }
+
   var description: String {
     switch self {
     case .none: return "None"
@@ -190,6 +214,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
   var position: Double
   var duration: Double
   var velocity: Int
+  var transpose: Int
   var arp: RBArp
   var ratchet: RBRatchet
 
@@ -198,6 +223,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     case position
     case duration
     case velocity
+    case transpose
     case arp
     case ratchet
   }
@@ -207,12 +233,14 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     position: Double = 0,
     duration: Double = 0,
     velocity: Int = 90,
+    tranpose: Int = 0,
     arp: RBArp = .none,
     ratchet: RBRatchet = .none) {
     self.id = id ?? UUID().uuidString
     self.position = position
     self.duration = duration
     self.velocity = velocity
+    self.transpose = tranpose
     self.arp = arp
     self.ratchet = ratchet
   }
@@ -225,6 +253,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     position = try values.decode(Double.self, forKey: .position)
     duration = try values.decode(Double.self, forKey: .duration)
     velocity = try values.decode(Int.self, forKey: .velocity)
+    transpose = try values.decode(Int.self, forKey: .transpose)
     arp = try values.decode(RBArp.self, forKey: .arp)
     ratchet = try values.decode(RBRatchet.self, forKey: .ratchet)
   }
@@ -235,6 +264,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     try container.encode(position, forKey: .position)
     try container.encode(duration, forKey: .duration)
     try container.encode(velocity, forKey: .velocity)
+    try container.encode(transpose, forKey: .transpose)
     try container.encode(arp, forKey: .arp)
     try container.encode(ratchet, forKey: .ratchet)
   }
@@ -246,6 +276,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
       position: position,
       duration: duration,
       velocity: velocity,
+      tranpose: transpose,
       arp: arp,
       ratchet: ratchet)
   }
@@ -256,6 +287,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     return lhs.position == rhs.position &&
       lhs.duration == rhs.duration &&
       lhs.velocity == rhs.velocity &&
+      lhs.transpose == rhs.transpose &&
       lhs.arp == rhs.arp &&
       lhs.ratchet == rhs.ratchet
   }
@@ -295,42 +327,59 @@ class RBSnapshotData: Codable {
 
 class RBPatternData: Codable {
   var id: String
+  var name: String
   var cells: [RBRhythmData]
-  var bpm: Double
+  var tempo: Tempo
+  var duration: Double
   var snapshots: RBSnapshotData
+  var createDate: Date
 
   enum CodingKeys: CodingKey {
     case id
+    case name
     case cells
-    case bpm
+    case tempo
+    case duration
     case snapshots
+    case createDate
   }
 
   init(
     id: String? = nil,
+    name: String,
     cells: [RBRhythmData] = [],
-    bpm: Double = 120,
+    tempo: Tempo = Tempo(),
+    duration: Double = 0,
     snapshots: RBSnapshotData = RBSnapshotData()) {
     self.id = id ?? UUID().uuidString
+    self.name = name
     self.cells = cells
-    self.bpm = bpm
+    self.duration = duration
+    self.tempo = tempo
     self.snapshots = snapshots
+    self.createDate = Date()
   }
 
   required init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)
+    name = try values.decode(String.self, forKey: .name)
     cells = try values.decode([RBRhythmData].self, forKey: .cells)
-    bpm = try values.decode(Double.self, forKey: .bpm)
+    duration = try values.decode(Double.self, forKey: .duration)
+    tempo = try values.decode(Tempo.self, forKey: .tempo)
     snapshots = try values.decode(RBSnapshotData.self, forKey: .snapshots)
+    createDate = try values.decode(Date.self, forKey: .createDate)
   }
 
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
+    try container.encode(name, forKey: .name)
     try container.encode(cells, forKey: .cells)
-    try container.encode(bpm, forKey: .bpm)
+    try container.encode(duration, forKey: .duration)
+    try container.encode(tempo, forKey: .tempo)
     try container.encode(snapshots, forKey: .snapshots)
+    try container.encode(createDate, forKey: .createDate)
   }
 
   func snapshot() {

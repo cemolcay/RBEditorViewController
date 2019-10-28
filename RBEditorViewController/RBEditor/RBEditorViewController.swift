@@ -35,26 +35,24 @@ class RBCell: RBScrollViewCell {
 }
 
 class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollViewDataSource, RBScrollViewDelegate {
+  @IBOutlet weak var contentView: UIView?
   let actionView = RBActionView(frame: .zero)
   let toolbarView = RBToolbarView(frame: .zero)
   let patternView = RBScrollView(frame: .zero)
-  var mode: RBMode = .rhythm
-  var selectedRhythmData: RBRhythmData?
-  var data: RBPatternData = RBPatternData()
-  var history: RBHistory!
   let actionViewWidth: CGFloat = 80
   let toolbarHeight: CGFloat = 80
+
+  var projectData: RBPatternData!
+  var history: RBHistory!
+  var mode: RBMode = .rhythm
+  var selectedRhythmData: RBRhythmData?
 
   // MARK: Lifecycle
 
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    // Setup history
-    history = RBHistory(dataRef: data)
-    history.push()
-
-    view.addSubview(actionView)
+    contentView?.addSubview(actionView)
     actionView.translatesAutoresizingMaskIntoConstraints = false
     actionView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor).isActive = true
     actionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
@@ -63,7 +61,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     actionView.selectMode(at: mode.rawValue)
     actionView.delegate = self
 
-    view.addSubview(toolbarView)
+    contentView?.addSubview(toolbarView)
     toolbarView.translatesAutoresizingMaskIntoConstraints = false
     toolbarView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
     toolbarView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor).isActive = true
@@ -71,23 +69,29 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     toolbarView.heightAnchor.constraint(equalToConstant: toolbarHeight).isActive = true
     updateToolbar()
 
-    view.addSubview(patternView)
+    contentView?.addSubview(patternView)
     patternView.translatesAutoresizingMaskIntoConstraints = false
     patternView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
     patternView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor).isActive = true
     patternView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
     patternView.bottomAnchor.constraint(equalTo: toolbarView.topAnchor).isActive = true
+
+  }
+
+  func intialize() {
+    history = RBHistory(dataRef: projectData)
+    history.push()
     patternView.rbDelegate = self
     patternView.rbDataSource = self
     patternView.reloadData()
+    patternView.rangeheadView.position = projectData.duration
+    projectDataDidChange()
   }
 
   func reload() {
-//    DispatchQueue.main.async {
-      self.patternView.reloadData()
-      self.patternView.fixOverlaps()
-      self.patternView.snapRangeheadToLastCell()
-//    }
+    self.patternView.reloadData()
+    self.patternView.fixOverlaps()
+    self.patternView.snapRangeheadToLastCell()
   }
 
   func updateToolbar() {
@@ -95,7 +99,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     case .record:
       let toolbarMode = RecordToolbarMode(
         props: RecordToolbarModeProps(
-          data: data,
+          data: projectData,
           rangeheadPosition: patternView.rangeheadView.position,
           didAddRecordingCallback: recordToolbarDidAddRecording,
           didUpdateRecordingCallback: recordToolbarDidUpdateRecording(duration:),
@@ -137,10 +141,16 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
           rhythmData: selectedRhythmData,
           didUpdateVelocityCallback: velocityToolbar(didUpdate:globally:)))
       toolbarView.render(mode: toolbarMode)
+    case .transpose:
+      let toolbarMode = TransposeToolbarMode(
+        props: TransposeToolbarModeProps(
+          rhythmData: selectedRhythmData,
+          didUpdateTransposeCallback: transposeToolbar(didUpdate:)))
+      toolbarView.render(mode: toolbarMode)
     case .snapshots:
       let toolbarMode = SnapshotToolbarMode(
         props: SnapshotToolbarModeProps(
-          snapshotData: data.snapshots,
+          snapshotData: projectData.snapshots,
           didPressAddButtonCallback: snapshotToolbarDidPressAddButton,
           didPressMIDICCButtonCallback: snapshotToolbarDidPressMIDICCButton,
           didSelectSnapshotAtIndex: snapshotToolbarDidSelectSnapshot(at:)))
@@ -148,25 +158,25 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     }
   }
 
+  func projectDataDidChange() {}
+
   // MARK: RBActionViewDelegate
 
   func actionView(_ actionView: RBActionView, didSelect action: RBAction, sender: UIButton) {
     switch action {
-    case .play:
-      return
     case .clear:
       selectedRhythmData = nil
-      data.cells = []
+      projectData.cells = []
       history.push()
       reload()
       updateToolbar()
     case .quantize:
       patternView.quantize(zoomLevel: patternView.zoomLevel)
     case .undo:
-      data.cells = history.undo() ?? data.cells
+      projectData.cells = history.undo() ?? projectData.cells
       reload()
     case .redo:
-      data.cells = history.redo() ?? data.cells
+      projectData.cells = history.redo() ?? projectData.cells
       reload()
     }
   }
@@ -179,11 +189,11 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   // MARK: RBScrollViewDataSource
 
   func numberOfCells(in rbScrollView: RBScrollView) -> Int {
-    return data.cells.count
+    return projectData.cells.count
   }
 
   func rbScrollView(_ rbScrollView: RBScrollView, cellAt index: Int) -> RBScrollViewCell {
-    let cellData = data.cells[index]
+    let cellData = projectData.cells[index]
     let cell = RBCell(frame: .zero)
     cell.position = cellData.position
     cell.duration = cellData.duration
@@ -193,17 +203,19 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   // MARK: RBScrollViewDelegate
 
   func rbScrollView(_ scrollView: RBScrollView, didUpdate cell: RBScrollViewCell, at index: Int) {
-    data.cells[index].position = cell.position
-    data.cells[index].duration = cell.duration
+    projectData.cells[index].position = cell.position
+    projectData.cells[index].duration = cell.duration
+    projectDataDidChange()
   }
 
   func rbScrollView(_ scrollView: RBScrollView, didDelete cell: RBScrollViewCell, at index: Int) {
-    data.cells.remove(at: index)
+    projectData.cells.remove(at: index)
     history.push()
+    projectDataDidChange()
   }
 
   func rbScrollView(_ scrollView: RBScrollView, didSelect cell: RBScrollViewCell, at index: Int) {
-    selectedRhythmData = data.cells[index]
+    selectedRhythmData = projectData.cells[index]
     updateToolbar()
   }
 
@@ -217,6 +229,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   }
 
   func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView) {
+    projectData.duration = scrollView.rangeheadView.position
     if mode == .record {
       updateToolbar()
     }
@@ -224,46 +237,54 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
 
   func rbScrollViewDidMoveCell(_ scrollView: RBScrollView) {
     history.push()
+    projectDataDidChange()
   }
 
   func rbScrollViewDidResizeCell(_ scrollView: RBScrollView) {
     history.push()
+    projectDataDidChange()
   }
 
   func rbScrollViewDidQuantize(_ scrollView: RBScrollView) {
     history.push()
+    projectDataDidChange()
   }
 
   // MARK: RecordToolbarModeView
 
   func recordToolbarDidAddRecording() {
     patternView.reloadData()
+    projectDataDidChange()
   }
 
   func recordToolbarDidUpdateRecording(duration: Double) {
-    let index = data.cells.count - 1
+    let index = projectData.cells.count - 1
     guard index >= 0 else { return }
     patternView.updateDurationOfCell(at: index, duration: duration)
+    projectDataDidChange()
   }
 
   func recordToolbarDidEndRecording() {
     patternView.snapRangeheadToLastCell()
     history.push()
     updateToolbar()
+    projectDataDidChange()
   }
 
   // MARK: RhythmToolbarModeView
 
   func rhythmToolbar(didAdd rhythmData: RBRhythmData) {
     rhythmData.position = patternView.rangeheadView.position
-    data.cells.append(rhythmData)
+    projectData.cells.append(rhythmData)
     reload()
     history.push()
+    projectDataDidChange()
   }
 
   func rhythmToolbar(didUpdate rhythmData: RBRhythmData) {
     reload()
     history.push()
+    projectDataDidChange()
   }
 
   // MARK: ArpToolbarModeView
@@ -271,15 +292,17 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   func arpToolbar(didUpdate arp: RBArp) {
     history.push()
     reload()
+    projectDataDidChange()
   }
 
   // MARK: VelocityToolbarModeView
 
   func velocityToolbar(didUpdate velocity: Int, globally: Bool) {
     if globally {
-      data.cells.forEach({ $0.velocity = velocity })
+      projectData.cells.forEach({ $0.velocity = velocity })
     }
     history.push()
+    projectDataDidChange()
   }
 
   // MARK: RatchetToolbarModeView
@@ -287,12 +310,20 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   func ratchetToolbar(didUpdate ratchet: RBRatchet) {
     history.push()
     reload()
+    projectDataDidChange()
+  }
+
+  // MARK: TransposeToolbarModeView
+
+  func transposeToolbar(didUpdate transpose: Int) {
+    history.push()
+    projectDataDidChange()
   }
 
   // MARK: SnapshotToolbarModeView
 
   func snapshotToolbarDidPressAddButton() {
-    data.snapshot()
+    projectData.snapshot()
     updateToolbar()
   }
 
@@ -301,10 +332,11 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   }
 
   func snapshotToolbarDidSelectSnapshot(at index: Int) {
-    guard data.snapshots.cells.indices.contains(index) else { return }
-    data.cells = data.snapshots.cells[index].map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
+    guard projectData.snapshots.cells.indices.contains(index) else { return }
+    projectData.cells = projectData.snapshots.cells[index].map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
     patternView.unselectCells()
     reload()
     updateToolbar()
+    projectDataDidChange()
   }
 }
