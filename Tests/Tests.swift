@@ -19,8 +19,8 @@ class Tests: XCTestCase {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
   }
 
-  func testHistory() {
-    let data = RBPatternData()
+    func testHistory() {
+    let data = RBPatternData(name: "Test")
     let history = RBHistory(dataRef: data)
     history.limit = 5
 
