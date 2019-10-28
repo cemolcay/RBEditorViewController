@@ -24,7 +24,7 @@ class Tempo: Codable {
 }
 
 class RBHistory {
-  private var dataRef: RBPatternData
+  private var dataRef: RBProjectData
   private(set) var stack: [[RBRhythmData]]
   private(set) var cursor: Int
   var limit: Int = 20
@@ -37,14 +37,14 @@ class RBHistory {
     return cursor < stack.count - 1
   }
 
-  init(dataRef: RBPatternData) {
+  init(dataRef: RBProjectData) {
     self.dataRef = dataRef
     self.stack = []
     self.cursor = 0
   }
 
   func push() {
-    let snap = dataRef.cells.map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
+    let snap = dataRef.rhythm.map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
     stack = Array((Array(stack.prefix(cursor + 1)) + [snap]).suffix(limit))
     cursor = stack.count - 1
   }
@@ -295,68 +295,68 @@ class RBRhythmData: Codable, Equatable, NSCopying {
 
 class RBSnapshotData: Codable {
   var id: String
-  var cells: [[RBRhythmData]]
+  var snapshots: [[RBRhythmData]]
   var cc: Int
 
   enum CodingKeys: CodingKey {
     case id
-    case cells
+    case snapshots
     case cc
   }
 
-  init(id: String? = nil, cells: [[RBRhythmData]] = [], cc: Int = 0) {
+  init(id: String? = nil, snapshots: [[RBRhythmData]] = [], cc: Int = 0) {
     self.id = id ?? UUID().uuidString
-    self.cells = cells
+    self.snapshots = snapshots
     self.cc = cc
   }
 
   required init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)
-    cells = try values.decode([[RBRhythmData]].self, forKey: .cells)
+    snapshots = try values.decode([[RBRhythmData]].self, forKey: .snapshots)
     cc = try values.decode(Int.self, forKey: .cc)
   }
 
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
-    try container.encode(cells, forKey: .cells)
+    try container.encode(snapshots, forKey: .snapshots)
     try container.encode(cc, forKey: .cc)
   }
 }
 
-class RBPatternData: Codable {
+class RBProjectData: Codable {
   var id: String
   var name: String
-  var cells: [RBRhythmData]
+  var rhythm: [RBRhythmData]
   var tempo: Tempo
   var duration: Double
-  var snapshots: RBSnapshotData
+  var snapshotData: RBSnapshotData
   var createDate: Date
 
   enum CodingKeys: CodingKey {
     case id
     case name
-    case cells
+    case rhythm
     case tempo
     case duration
-    case snapshots
+    case snapshotData
     case createDate
   }
 
   init(
     id: String? = nil,
     name: String,
-    cells: [RBRhythmData] = [],
+    rhythm: [RBRhythmData] = [],
     tempo: Tempo = Tempo(),
     duration: Double = 0,
-    snapshots: RBSnapshotData = RBSnapshotData()) {
+    snapshotData: RBSnapshotData = RBSnapshotData()) {
     self.id = id ?? UUID().uuidString
     self.name = name
-    self.cells = cells
+    self.rhythm = rhythm
     self.duration = duration
     self.tempo = tempo
-    self.snapshots = snapshots
+    self.snapshotData = snapshotData
     self.createDate = Date()
   }
 
@@ -364,10 +364,10 @@ class RBPatternData: Codable {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)
     name = try values.decode(String.self, forKey: .name)
-    cells = try values.decode([RBRhythmData].self, forKey: .cells)
+    rhythm = try values.decode([RBRhythmData].self, forKey: .rhythm)
     duration = try values.decode(Double.self, forKey: .duration)
     tempo = try values.decode(Tempo.self, forKey: .tempo)
-    snapshots = try values.decode(RBSnapshotData.self, forKey: .snapshots)
+    snapshotData = try values.decode(RBSnapshotData.self, forKey: .snapshotData)
     createDate = try values.decode(Date.self, forKey: .createDate)
   }
 
@@ -375,15 +375,15 @@ class RBPatternData: Codable {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
     try container.encode(name, forKey: .name)
-    try container.encode(cells, forKey: .cells)
+    try container.encode(rhythm, forKey: .rhythm)
     try container.encode(duration, forKey: .duration)
     try container.encode(tempo, forKey: .tempo)
-    try container.encode(snapshots, forKey: .snapshots)
+    try container.encode(snapshotData, forKey: .snapshotData)
     try container.encode(createDate, forKey: .createDate)
   }
 
   func snapshot() {
-    let snap = cells.map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
-    snapshots.cells.append(snap)
+    let snap = rhythm.map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
+    snapshotData.snapshots.append(snap)
   }
 }

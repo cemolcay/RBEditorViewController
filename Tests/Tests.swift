@@ -20,7 +20,7 @@ class Tests: XCTestCase {
   }
 
     func testHistory() {
-    let data = RBPatternData(name: "Test")
+    let data = RBProjectData(name: "Test")
     let history = RBHistory(dataRef: data)
     history.limit = 5
 
@@ -33,7 +33,7 @@ class Tests: XCTestCase {
     let state1 = [
       RBRhythmData(position: 0, duration: 1)
     ]
-    data.cells = state1
+    data.rhythm = state1
     history.push()
     XCTAssertEqual(history.cursor, 1)
     XCTAssertEqual(history.stack.count, 2)
@@ -42,7 +42,7 @@ class Tests: XCTestCase {
       RBRhythmData(position: 0, duration: 1),
       RBRhythmData(position: 1, duration: 1),
     ]
-    data.cells = state2
+    data.rhythm = state2
     history.push()
     XCTAssertEqual(history.cursor, 2)
     XCTAssertEqual(history.stack.count, 3)
@@ -52,7 +52,7 @@ class Tests: XCTestCase {
       RBRhythmData(position: 1, duration: 1),
       RBRhythmData(position: 2, duration: 1),
     ]
-    data.cells = state3
+    data.rhythm = state3
     history.push()
     XCTAssertEqual(history.cursor, 3)
     XCTAssertEqual(history.stack.count, 4)
@@ -63,7 +63,7 @@ class Tests: XCTestCase {
       RBRhythmData(position: 2, duration: 1),
       RBRhythmData(position: 3, duration: 1),
     ]
-    data.cells = state4
+    data.rhythm = state4
     history.push()
     XCTAssertEqual(history.cursor, 4)
     XCTAssertEqual(history.stack.count, 5)
@@ -75,7 +75,7 @@ class Tests: XCTestCase {
       RBRhythmData(position: 3, duration: 1),
       RBRhythmData(position: 4, duration: 1),
     ]
-    data.cells = state5
+    data.rhythm = state5
     history.push()
     XCTAssertEqual(history.cursor, 4)
     XCTAssertEqual(history.stack.count, 5)
@@ -88,7 +88,7 @@ class Tests: XCTestCase {
       RBRhythmData(position: 4, duration: 1),
       RBRhythmData(position: 5, duration: 1),
     ]
-    data.cells = state6
+    data.rhythm = state6
     history.push()
     XCTAssertEqual(history.cursor, 4)
     XCTAssertEqual(history.stack.count, 5)
@@ -147,7 +147,7 @@ class Tests: XCTestCase {
       RBRhythmData(position: 0, duration: 0),
       RBRhythmData(position: 10, duration: 0),
     ]
-    data.cells = newState
+    data.rhythm = newState
     history.push()
 
     XCTAssertEqual(history.cursor, 3)

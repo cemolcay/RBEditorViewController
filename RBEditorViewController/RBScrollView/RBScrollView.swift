@@ -57,9 +57,9 @@ enum RBOverlapState {
 public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadViewDelegate {
   public var measureBarCount: Int = 4
   public var measureCount: Int = 4
-  public var measureWidth: CGFloat = 100
-  public var minMeasureWidth: CGFloat = 50
-  public var maxMeasureWidth: CGFloat = 150
+  public var measureWidth: CGFloat = 200
+  public var minMeasureWidth: CGFloat = 100
+  public var maxMeasureWidth: CGFloat = 300
   public var measureHeight: CGFloat = 24
   public var cellVerticalPadding: CGFloat = 8
   public var timeSignatureBeatCount: Int = 4
@@ -200,13 +200,13 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     // Playhead
     playheadView.measureHeight = measureHeight
     playheadView.lineHeight = contentSize.height - measureHeight
-    playheadView.measureWidth = measureWidth
+    playheadView.measureWidth = measureBarWidth
     bringSubviewToFront(playheadView)
 
     // Rangehead
     rangeheadView.measureHeight = measureHeight
     rangeheadView.lineHeight = contentSize.height - measureHeight
-    rangeheadView.measureWidth = measureWidth
+    rangeheadView.measureWidth = measureBarWidth
     bringSubviewToFront(rangeheadView)
 
     CATransaction.commit()
@@ -337,21 +337,11 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       let oldZoomLevel = zoomLevel
       if measureWidth >= maxMeasureWidth, zoomLevel < maxZoomLevel {
         zoomLevel += 1
-        switch zoomLevel {
-        case 1:
-          minMeasureWidth = maxMeasureWidth / CGFloat(timeSignatureBeatCount)
-        default:
-          minMeasureWidth = maxMeasureWidth / 4.0
-        }
+        minMeasureWidth = maxMeasureWidth / CGFloat(timeSignatureBeatCount)
         measureWidth = minMeasureWidth
       } else if measureWidth <= minMeasureWidth, zoomLevel > 0 {
         zoomLevel -= 1
-        switch zoomLevel {
-        case 0:
-          maxMeasureWidth = minMeasureWidth * CGFloat(timeSignatureBeatCount)
-        default:
-          maxMeasureWidth = minMeasureWidth * 4.0
-        }
+        maxMeasureWidth = minMeasureWidth * CGFloat(timeSignatureBeatCount)
         measureWidth = maxMeasureWidth
       }
 
@@ -369,17 +359,24 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   // MARK: Utils
 
   func farMostCellPosition() -> Double {
-    return cells.map({ ceil($0.position + $0.duration) }).sorted().last ?? 0
+    if let last = cells.map({ ceil($0.position + $0.duration) }).sorted().last {
+      return last + 1
+    }
+    return 0
   }
 
   func durationForTranslation(_ translation: CGFloat) -> Double {
-    let d = translation / measureWidth
+    var measureBarWidth: CGFloat = 0
     switch zoomLevel {
-    case 0: return Double(d)
-    case 1: return Double(d / CGFloat(timeSignatureBeatCount))
-    case 2: return Double(d / (CGFloat(timeSignatureBeatCount) / 4.0))
-    default: return 1.0
+    case 0:
+      measureBarWidth = measureWidth
+    case 1:
+      measureBarWidth = measureWidth * CGFloat(timeSignatureBeatCount)
+    default:
+      measureBarWidth = measureWidth * CGFloat(timeSignatureBeatCount) * 4
     }
+
+    return Double(translation / measureBarWidth)
   }
 
   func quantize(zoomLevel: Int) {
@@ -390,7 +387,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     case 1:
       range = 1.0 / Double(timeSignatureBeatCount)
     case 2:
-      range = 1.0 / (Double(timeSignatureBeatCount) / 4.0)
+      range = (1.0 / (Double(timeSignatureBeatCount)) / 4.0)
     default:
       range = 1.0
     }

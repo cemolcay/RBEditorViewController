@@ -9,19 +9,19 @@
 import UIKit
 
 class RecordToolbarModeProps: RBToolbarModeProps {
-  var data: RBPatternData
+  var data: RBProjectData
   var rangeheadPosition: Double
   var didAddRecordingCallback: (() -> Void)?
   var didUpdateRecordingCallback: ((_ duration: Double) -> Void)?
   var didEndRecordingCallback: (() -> Void)?
 
   required init() {
-    self.data = RBPatternData(name: "recording")
+    self.data = RBProjectData(name: "recording")
     self.rangeheadPosition = 0
   }
 
   init(
-    data: RBPatternData = RBPatternData(name: "recording"),
+    data: RBProjectData = RBProjectData(name: "recording"),
     rangeheadPosition: Double = 0,
     didAddRecordingCallback: (() -> Void)?,
     didUpdateRecordingCallback: ((Double) -> Void)?,
@@ -82,18 +82,18 @@ class RecordToolbarModeView: RBToolbarModeView<RecordToolbarModeProps>, RBTapRec
   func tapRecordView(_ tapRecordView: RBTapRecordView, didStartRecording position: Double) {
     showEndButton()
     let newCell = RBRhythmData(position: position)
-    props.data.cells.append(newCell)
+    props.data.rhythm.append(newCell)
     props.didAddRecordingCallback?()
   }
 
   func tapRecordView(_ tapRecordView: RBTapRecordView, didUpdateRecording duration: Double) {
-    guard let newCell = props.data.cells.last else { return }
+    guard let newCell = props.data.rhythm.last else { return }
     newCell.duration = duration
     props.didUpdateRecordingCallback?(duration)
   }
 
   func tapRecordView(_ tapRecordView: RBTapRecordView, didEndRecording duration: Double) {
-    guard let newCell = props.data.cells.last else { return }
+    guard let newCell = props.data.rhythm.last else { return }
     newCell.duration = duration
     props.didUpdateRecordingCallback?(duration)
   }

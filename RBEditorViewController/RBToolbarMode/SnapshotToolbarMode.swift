@@ -97,7 +97,7 @@ class SnapshotToolbarModeView: RBToolbarModeView<SnapshotToolbarModeProps> {
     snapshotStack.bottomAnchor.constraint(equalTo: snapshotScroll.bottomAnchor).isActive = true
     snapshotStack.heightAnchor.constraint(equalTo: snapshotScroll.heightAnchor).isActive = true
 
-    for index in 0..<snapshots.cells.count {
+    for index in 0..<snapshots.snapshots.count {
       let cell = RBSnapshotCellView(frame: .zero)
       cell.translatesAutoresizingMaskIntoConstraints = false
       cell.layer.borderColor = UIColor.black.cgColor

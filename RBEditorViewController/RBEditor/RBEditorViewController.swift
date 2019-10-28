@@ -42,7 +42,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   let actionViewWidth: CGFloat = 80
   let toolbarHeight: CGFloat = 80
 
-  var projectData: RBPatternData!
+  var projectData = RBProjectData(name: "Project")
   var history: RBHistory!
   var mode: RBMode = .rhythm
   var selectedRhythmData: RBRhythmData?
@@ -76,15 +76,13 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     patternView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
     patternView.bottomAnchor.constraint(equalTo: toolbarView.topAnchor).isActive = true
 
-  }
-
-  func intialize() {
-    history = RBHistory(dataRef: projectData)
-    history.push()
     patternView.rbDelegate = self
     patternView.rbDataSource = self
     patternView.reloadData()
     patternView.rangeheadView.position = projectData.duration
+    
+    history = RBHistory(dataRef: projectData)
+    history.push()
     projectDataDidChange()
   }
 
@@ -150,7 +148,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     case .snapshots:
       let toolbarMode = SnapshotToolbarMode(
         props: SnapshotToolbarModeProps(
-          snapshotData: projectData.snapshots,
+          snapshotData: projectData.snapshotData,
           didPressAddButtonCallback: snapshotToolbarDidPressAddButton,
           didPressMIDICCButtonCallback: snapshotToolbarDidPressMIDICCButton,
           didSelectSnapshotAtIndex: snapshotToolbarDidSelectSnapshot(at:)))
@@ -166,17 +164,17 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     switch action {
     case .clear:
       selectedRhythmData = nil
-      projectData.cells = []
+      projectData.rhythm = []
       history.push()
       reload()
       updateToolbar()
     case .quantize:
       patternView.quantize(zoomLevel: patternView.zoomLevel)
     case .undo:
-      projectData.cells = history.undo() ?? projectData.cells
+      projectData.rhythm = history.undo() ?? projectData.rhythm
       reload()
     case .redo:
-      projectData.cells = history.redo() ?? projectData.cells
+      projectData.rhythm = history.redo() ?? projectData.rhythm
       reload()
     }
   }
@@ -189,11 +187,11 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   // MARK: RBScrollViewDataSource
 
   func numberOfCells(in rbScrollView: RBScrollView) -> Int {
-    return projectData.cells.count
+    return projectData.rhythm.count
   }
 
   func rbScrollView(_ rbScrollView: RBScrollView, cellAt index: Int) -> RBScrollViewCell {
-    let cellData = projectData.cells[index]
+    let cellData = projectData.rhythm[index]
     let cell = RBCell(frame: .zero)
     cell.position = cellData.position
     cell.duration = cellData.duration
@@ -203,19 +201,19 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   // MARK: RBScrollViewDelegate
 
   func rbScrollView(_ scrollView: RBScrollView, didUpdate cell: RBScrollViewCell, at index: Int) {
-    projectData.cells[index].position = cell.position
-    projectData.cells[index].duration = cell.duration
+    projectData.rhythm[index].position = cell.position
+    projectData.rhythm[index].duration = cell.duration
     projectDataDidChange()
   }
 
   func rbScrollView(_ scrollView: RBScrollView, didDelete cell: RBScrollViewCell, at index: Int) {
-    projectData.cells.remove(at: index)
+    projectData.rhythm.remove(at: index)
     history.push()
     projectDataDidChange()
   }
 
   func rbScrollView(_ scrollView: RBScrollView, didSelect cell: RBScrollViewCell, at index: Int) {
-    selectedRhythmData = projectData.cells[index]
+    selectedRhythmData = projectData.rhythm[index]
     updateToolbar()
   }
 
@@ -258,7 +256,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   }
 
   func recordToolbarDidUpdateRecording(duration: Double) {
-    let index = projectData.cells.count - 1
+    let index = projectData.rhythm.count - 1
     guard index >= 0 else { return }
     patternView.updateDurationOfCell(at: index, duration: duration)
     projectDataDidChange()
@@ -275,7 +273,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
 
   func rhythmToolbar(didAdd rhythmData: RBRhythmData) {
     rhythmData.position = patternView.rangeheadView.position
-    projectData.cells.append(rhythmData)
+    projectData.rhythm.append(rhythmData)
     reload()
     history.push()
     projectDataDidChange()
@@ -299,7 +297,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
 
   func velocityToolbar(didUpdate velocity: Int, globally: Bool) {
     if globally {
-      projectData.cells.forEach({ $0.velocity = velocity })
+      projectData.rhythm.forEach({ $0.velocity = velocity })
     }
     history.push()
     projectDataDidChange()
@@ -332,8 +330,8 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   }
 
   func snapshotToolbarDidSelectSnapshot(at index: Int) {
-    guard projectData.snapshots.cells.indices.contains(index) else { return }
-    projectData.cells = projectData.snapshots.cells[index].map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
+    guard projectData.snapshotData.snapshots.indices.contains(index) else { return }
+    projectData.rhythm = projectData.snapshotData.snapshots[index].map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
     patternView.unselectCells()
     reload()
     updateToolbar()
