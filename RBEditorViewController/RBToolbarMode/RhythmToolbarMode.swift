@@ -11,6 +11,7 @@ import UIKit
 class RhythmToolbarModeProps: RBToolbarModeProps {
   var rhythmData: RBRhythmData?
   var didAddRhythmCallback: ((RBRhythmData) -> Void)?
+  var didAddRestCallback: ((Double) -> Void)?
   var didUpdateRhythmCallback: ((RBRhythmData) -> Void)?
 
   required init() {}
@@ -18,23 +19,26 @@ class RhythmToolbarModeProps: RBToolbarModeProps {
   init(
     rhythmData: RBRhythmData?,
     didAddRhythmCallback: ((RBRhythmData) -> Void)?,
+    didAddRestCallback: ((Double) -> Void)?,
     didUpdateRhythmCallback: ((RBRhythmData) -> Void)?) {
     self.rhythmData = rhythmData
     self.didAddRhythmCallback = didAddRhythmCallback
+    self.didAddRestCallback = didAddRestCallback
     self.didUpdateRhythmCallback = didUpdateRhythmCallback
   }
 }
 
 class RhythmToolbarModeView: RBToolbarModeView<RhythmToolbarModeProps> {
-  let durationStack = UIStackView()
+  let rhythmStack = UIStackView()
   let modifierSegment = UISegmentedControl()
+  let rhythmSegment = UISegmentedControl()
 
   override func render() {
     super.render()
-    durationStack.spacing = 8
-    stackView.addArrangedSubview(durationStack)
-    stackView.addArrangedSubview(modifierSegment)
 
+    let durationStack = UIStackView()
+    durationStack.axis = .horizontal
+    durationStack.spacing = 8
     RBDurationType.allCases
       .map({ $0.toolbarButton() })
       .forEach({
@@ -46,13 +50,49 @@ class RhythmToolbarModeView: RBToolbarModeView<RhythmToolbarModeProps> {
     RBModifierType.allCases
       .map({ $0.description })
       .enumerated()
-      .forEach({ modifierSegment.insertSegment(withTitle: $0.element, at: $0.offset, animated: false) })
+      .forEach({
+        modifierSegment.insertSegment(withTitle: $0.element, at: $0.offset, animated: false)
+      })
     modifierSegment.selectedSegmentIndex = 0
+    rhythmSegment.removeAllSegments()
+
+    if #available(iOS 13.0, *) {
+      rhythmSegment.backgroundColor = UIColor.toolbarButtonSelectedBackgroundColor
+      rhythmSegment.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.segmentedControlSelectedTextColor], for: .selected)
+      rhythmSegment.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.segmentedControlTextColor], for: .normal)
+      modifierSegment.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.segmentedControlSelectedTextColor], for: .selected)
+      modifierSegment.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.segmentedControlTextColor], for: .normal)
+      modifierSegment.backgroundColor = UIColor.toolbarButtonSelectedBackgroundColor
+    } else {
+      rhythmSegment.tintColor = UIColor.white
+      modifierSegment.tintColor = UIColor.white
+    }
+
+    RBRhythmType.allCases
+      .map({ $0.image?.scaleImage(to: CGSize(width: 20, height: 20)) })
+      .enumerated()
+      .forEach({
+        rhythmSegment.insertSegment(with: $0.element, at: $0.offset, animated: false)
+      })
+    rhythmSegment.selectedSegmentIndex = 0
+
+    // Add mode
+    if props.rhythmData == nil {
+      rhythmStack.addArrangedSubview(rhythmSegment)
+    }
+
+    rhythmStack.addArrangedSubview(durationStack)
+    rhythmStack.spacing = 8
+    stackView.spacing = 4
+    stackView.axis = .vertical
+    stackView.addArrangedSubview(rhythmStack)
+    stackView.addArrangedSubview(modifierSegment)
   }
 
   @IBAction func didEditCell(sender: UIButton) {
     guard let durationType = RBDurationType(rawValue: sender.tag),
-      let modifierType = RBModifierType(rawValue: modifierSegment.selectedSegmentIndex)
+      let modifierType = RBModifierType(rawValue: modifierSegment.selectedSegmentIndex),
+      let rhythmType = RBRhythmType(rawValue: rhythmSegment.selectedSegmentIndex)
       else { return }
     let value = durationType.value * modifierType.value
 
@@ -61,8 +101,13 @@ class RhythmToolbarModeView: RBToolbarModeView<RhythmToolbarModeProps> {
       data.duration = value
       props.didUpdateRhythmCallback?(data)
     } else { // Add Cell
-      let data = RBRhythmData(duration: value)
-      props.didAddRhythmCallback?(data)
+      switch rhythmType {
+      case .note:
+        let data = RBRhythmData(duration: value)
+        props.didAddRhythmCallback?(data)
+      case .rest:
+        props.didAddRestCallback?(value)
+      }
     }
   }
 }
@@ -70,7 +115,7 @@ class RhythmToolbarModeView: RBToolbarModeView<RhythmToolbarModeProps> {
 final class RhythmToolbarMode: RBToolbarMode {
   typealias PropType = RhythmToolbarModeProps
   var props = RhythmToolbarModeProps()
-  var toolbarTitle: String = "Add Rhythm"
+  var toolbarTitle: String = "Rhythm"
 
   var view: RBToolbarModeView<RhythmToolbarModeProps> {
     return RhythmToolbarModeView(props: props)

@@ -8,6 +8,20 @@
 
 import UIKit
 
+struct TimeSignature: Codable {
+  var beats: Int = 4
+}
+
+struct Tempo: Codable {
+  var timeSignature: TimeSignature = TimeSignature()
+  var bpm: Double = 120
+}
+
+struct RBHistoryItem: Equatable {
+  let rhythmData: [RBRhythmData]
+  let duration: Double
+}
+
 extension Collection {
   /// Returns the element at the specified index iff it is within bounds, otherwise nil.
   subscript(safe index: Index) -> Element? {
@@ -15,19 +29,71 @@ extension Collection {
   }
 }
 
-class Tempo: Codable {
-  var bpm: Double
+extension UIImage {
+  func scaleImage(to size: CGSize) -> UIImage? {
+    UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.main.scale)
+    draw(in: CGRect(origin: .zero, size: size))
+    let image = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+    return image
+  }
+}
 
-  init(bpm: Double = 120) {
-    self.bpm = bpm
+extension Collection where Element == RBRhythmData {
+  func copy() -> [RBRhythmData] {
+    return map({ $0.copy() as? RBRhythmData }).compactMap({ $0 })
+  }
+}
+
+extension UIColor {
+  static let toolbarButtonSelectedBackgroundColor = UIColor(red: 133.0/255.0, green: 133.0/255.0, blue: 133.0/255.0, alpha: 1)
+  static let toolbarButtonBackgroundColor = UIColor.clear
+  static let toolbarButtonTextColor = UIColor.white
+  static let toolbarButtonSelectedTextColor = UIColor.white
+  static let toolbarBackgroundColor = UIColor(red: 84.0/255.0, green: 84.0/255.0, blue: 84.0/255.0, alpha: 1)
+  static let toolbarBorderColor = UIColor.black
+  static let toolbarTitleColor = UIColor.white
+  static let actionBarTitleColor = UIColor.white
+  static let actionBarBackgroundColor = UIColor(red: 74.0/255.0, green: 74.0/255.0, blue: 74.0/255.0, alpha: 1)
+  static let actionBarBorderColor = UIColor.black
+  static let gridBackgroundColor = UIColor(red: 46.0/255.0, green: 46.0/255.0, blue: 46.0/255.0, alpha: 1)
+  static let gridLineColor = UIColor(red: 92.0/255.0, green: 92.0/255.0, blue: 92.0/255.0, alpha: 1)
+  static let measureBackgroundColor = UIColor(red: 74.0/255.0, green: 74.0/255.0, blue: 74.0/255.0, alpha: 1)
+  static let measureLineColor = UIColor(red: 110.0/255.0, green: 110.0/255.0, blue: 110.0/255.0, alpha: 1)
+  static let measureTextColor = UIColor.white
+  static let playheadBackgroundColor = UIColor(red: 176.0/255.0, green: 176.0/255.0, blue: 176.0/255.0, alpha: 1)
+  static let playheadBorderColor = UIColor.white
+  static let rangeheadBackgroundColor = UIColor(red: 176.0/255.0, green: 176.0/255.0, blue: 176.0/255.0, alpha: 1)
+  static let rangeheadBorderColor = UIColor.white
+  static let rhythmCellBackgroundColor = UIColor(red: 49.0/255.0, green: 88.0/255.0, blue: 130.0/255.0, alpha: 1)
+  static let rhythmCellSelectedBorderColor = UIColor(red: 201.0/255.0, green: 227.0/255.0, blue: 255.0/255.0, alpha: 1)
+  static let rhythmCellBorderColor = UIColor.black
+  static let segmentedControlTextColor = UIColor.white
+  static let segmentedControlSelectedTextColor = UIColor.black
+}
+
+extension UIFont {
+  static let actionBarTitleFont = UIFont.systemFont(ofSize: 17, weight: .medium)
+  static let toolbarTitleFont = UIFont.systemFont(ofSize: 15, weight: .medium)
+  static let toolbarButtonFont = UIFont.systemFont(ofSize: 13)
+  static let toolbarButtonSelectedFont = UIFont.systemFont(ofSize: 13)
+}
+
+extension UIViewController {
+  func setupRhythmBudTheme() {
+    view.backgroundColor = UIColor.gridBackgroundColor
+    navigationController?.navigationBar.barTintColor = .darkGray
+    navigationController?.navigationBar.tintColor = .white
+    navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
   }
 }
 
 class RBHistory {
   private var dataRef: RBProjectData
-  private(set) var stack: [[RBRhythmData]]
-  private(set) var cursor: Int
+  private(set) var stack: [RBHistoryItem]
+  private(set) var cursor: Int { didSet { historyDidChangeCallback?() }}
   var limit: Int = 20
+  var historyDidChangeCallback: (() -> Void)?
 
   var canUndo: Bool {
     return cursor > 0
@@ -44,25 +110,27 @@ class RBHistory {
   }
 
   func push() {
-    let snap = dataRef.rhythm.map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
-    stack = Array((Array(stack.prefix(cursor + 1)) + [snap]).suffix(limit))
+    let historyItem = RBHistoryItem(
+      rhythmData: dataRef.rhythm.copy(),
+      duration: dataRef.duration)
+    stack = Array((Array(stack.prefix(cursor + 1)) + [historyItem]).suffix(limit))
     cursor = stack.count - 1
   }
 
-  func undo() -> [RBRhythmData]? {
+  func undo() -> RBHistoryItem? {
     guard canUndo else { return nil }
     cursor -= 1
     return stack[cursor]
   }
 
-  func redo() -> [RBRhythmData]? {
+  func redo() -> RBHistoryItem? {
     guard canRedo else { return nil }
     cursor += 1
     return stack[cursor]
   }
 }
 
-enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+enum RBMode: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case record
   case rhythm
   case arp
@@ -73,18 +141,18 @@ enum RBMode: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
 
   var description: String {
     switch self {
-    case .record: return "Record"
-    case .rhythm: return "Rtm"
-    case .arp: return "Arp"
-    case .ratchet: return "Rat"
-    case .velocity: return "Vel"
-    case .transpose: return "Trs"
-    case .snapshots: return "Snap"
+    case .record: return i18n.record.description
+    case .rhythm: return i18n.rhythm.description
+    case .arp: return i18n.arp.description
+    case .ratchet: return i18n.ratchet.description
+    case .velocity: return i18n.velocity.description
+    case .transpose: return i18n.transpose.description
+    case .snapshots: return i18n.snapshots.description
     }
   }
 }
 
-enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+enum RBAction: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case clear
   case quantize
   case undo
@@ -92,15 +160,34 @@ enum RBAction: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
 
   var description: String {
     switch self {
-    case .clear: return "Clear"
-    case .quantize: return "Quantize"
-    case .undo: return "Undo"
-    case .redo: return "Redo"
+    case .clear: return i18n.clear.description
+    case .quantize: return i18n.quantize.description
+    case .undo: return i18n.undo.description
+    case .redo: return i18n.redo.description
     }
+  }
+
+  var image: UIImage? {
+    switch self {
+    case .clear: return UIImage(named: "bin2")
+    case .quantize: return UIImage(named: "beat")
+    case .undo: return UIImage(named: "undo")
+    case .redo: return UIImage(named: "redo")
+    }
+  }
+
+  var actionButton: UIButton {
+    let button = UIButton(frame: .zero)
+    button.tag = rawValue
+    button.setImage(self.image, for: .normal)
+    button.tintColor = UIColor.toolbarButtonTextColor
+    button.translatesAutoresizingMaskIntoConstraints = false
+    button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 1).isActive = true
+    return button
   }
 }
 
-enum RBDurationType: Int, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+enum RBDurationType: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case doubleWhole
   case whole
   case half
@@ -129,15 +216,34 @@ enum RBDurationType: Int, CaseIterable, CustomStringConvertible, ToolbarButtonin
     case .whole: return "1"
     case .half: return "1/2"
     case .quarter: return "1/4"
-    case .eighth: return "1/8"
-    case .sixteenth: return "1/16"
-    case .thirtysecond: return "1/32"
-    case .sixthfourth: return "1/64"
+    case .eighth: return "8th"
+    case .sixteenth: return "16th"
+    case .thirtysecond: return "32nd"
+    case .sixthfourth: return "64th"
     }
   }
 }
 
-enum RBModifierType: Int, CaseIterable, CustomStringConvertible {
+enum RBRhythmType: Int, Codable, CaseIterable, CustomStringConvertible {
+  case note
+  case rest
+
+  var description: String {
+    switch self {
+    case .note: return i18n.note.description
+    case .rest: return i18n.rest.description
+    }
+  }
+
+  var image: UIImage? {
+    switch self {
+    case .note: return UIImage(named: "notesIcon")
+    case .rest: return UIImage(named: "restIcon")
+    }
+  }
+}
+
+enum RBModifierType: Int, Codable, CaseIterable, CustomStringConvertible {
   case none
   case dotted
   case triplet
@@ -154,10 +260,10 @@ enum RBModifierType: Int, CaseIterable, CustomStringConvertible {
 
   var description: String {
     switch self {
-      case .none: return "None"
-      case .dotted: return "Dot"
-      case .triplet: return "Trip"
-      case .quintuplet: return "Quint"
+    case .none: return i18n.none.description
+    case .dotted: return i18n.dotted.description
+    case .triplet: return i18n.triplet.description
+    case .quintuplet: return i18n.quintuplet.description
     }
   }
 }
@@ -173,13 +279,13 @@ enum RBArp: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, Tool
 
   var description: String {
     switch self {
-    case .none: return "None"
-    case .up: return "Up"
-    case .down: return "Down"
-    case .updown: return "Up-Down"
-    case .random: return "Random"
-    case .highFirst: return "High First"
-    case .lowFirst: return "Low First"
+    case .none: return i18n.none.description
+    case .up: return i18n.upOrder.description
+    case .down: return i18n.downOrder.description
+    case .updown: return i18n.upDownOrder.description
+    case .random: return i18n.randomOrder.description
+    case .highFirst: return i18n.highFirstOrder.description
+    case .lowFirst: return i18n.lowFirstOrder.description
     }
   }
 }
@@ -201,7 +307,7 @@ enum RBRatchet: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, 
 
   var description: String {
     switch self {
-    case .none: return "None"
+    case .none: return i18n.none.description
     case .two: return "2"
     case .three: return "3"
     case .four: return "4"
@@ -293,39 +399,61 @@ class RBRhythmData: Codable, Equatable, NSCopying {
   }
 }
 
-class RBSnapshotData: Codable {
+struct RBSnapshotItem: Codable {
+  let rhythmData: [RBRhythmData]
+  let duration: Double
+
+  func copy() -> RBSnapshotItem {
+    return RBSnapshotItem(
+      rhythmData: rhythmData.copy(),
+      duration: duration)
+  }
+}
+
+class RBSnapshotData: Codable, NSCopying {
   var id: String
-  var snapshots: [[RBRhythmData]]
   var cc: Int
+  var snapshots: [RBSnapshotItem]
 
   enum CodingKeys: CodingKey {
     case id
-    case snapshots
     case cc
+    case snapshots
   }
 
-  init(id: String? = nil, snapshots: [[RBRhythmData]] = [], cc: Int = 0) {
+  init(id: String? = nil, cc: Int = 0, snapshots: [RBSnapshotItem] = []) {
     self.id = id ?? UUID().uuidString
-    self.snapshots = snapshots
     self.cc = cc
+    self.snapshots = snapshots
   }
 
   required init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)
-    snapshots = try values.decode([[RBRhythmData]].self, forKey: .snapshots)
     cc = try values.decode(Int.self, forKey: .cc)
+    snapshots = try values.decode([RBSnapshotItem].self, forKey: .snapshots)
   }
+
+  // MARK: Encodable
 
   func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
-    try container.encode(snapshots, forKey: .snapshots)
     try container.encode(cc, forKey: .cc)
+    try container.encode(snapshots, forKey: .snapshots)
+  }
+
+  // MARK: NSCopying
+
+  func copy(with zone: NSZone? = nil) -> Any {
+    return RBSnapshotData(
+      id: id,
+      cc: cc,
+      snapshots: snapshots.map({ $0.copy() }))
   }
 }
 
-class RBProjectData: Codable {
+class RBProjectData: Codable, NSCopying {
   var id: String
   var name: String
   var rhythm: [RBRhythmData]
@@ -350,14 +478,15 @@ class RBProjectData: Codable {
     rhythm: [RBRhythmData] = [],
     tempo: Tempo = Tempo(),
     duration: Double = 0,
-    snapshotData: RBSnapshotData = RBSnapshotData()) {
+    snapshotData: RBSnapshotData = RBSnapshotData(),
+    creationDate: Date = Date()) {
     self.id = id ?? UUID().uuidString
     self.name = name
     self.rhythm = rhythm
     self.duration = duration
     self.tempo = tempo
     self.snapshotData = snapshotData
-    self.createDate = Date()
+    self.createDate = creationDate
   }
 
   required init(from decoder: Decoder) throws {
@@ -383,7 +512,20 @@ class RBProjectData: Codable {
   }
 
   func snapshot() {
-    let snap = rhythm.map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
-    snapshotData.snapshots.append(snap)
+    let snapshotItem = RBSnapshotItem(
+      rhythmData: rhythm.copy(),
+      duration: duration)
+    snapshotData.snapshots.append(snapshotItem)
+  }
+
+  func copy(with zone: NSZone? = nil) -> Any {
+    return RBProjectData(
+      id: id,
+      name: name,
+      rhythm: rhythm.copy(),
+      tempo: tempo,
+      duration: duration,
+      snapshotData: snapshotData.copy() as? RBSnapshotData ?? RBSnapshotData(),
+      creationDate: createDate)
   }
 }

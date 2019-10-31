@@ -43,7 +43,7 @@ open class RBScrollViewCell: UIView {
   /// View that holds the pan gesture on right most side in the view to use in resizing cell.
   private let resizeView = UIView()
   /// Inset from the rightmost side on the cell to capture resize gesture.
-  open var resizePanThreshold: CGFloat = 10
+  open var resizePanThreshold: CGFloat = 20
   /// Delegate that informs about editing cell.
   open weak var delegate: RBScrollViewCellDelegate?
   /// Custom items other than delete, when you long press cell.
@@ -126,7 +126,7 @@ open class RBScrollViewCell: UIView {
     let menu = UIMenuController.shared
     menu.menuItems = [
       UIMenuItem(
-        title: NSLocalizedString("Delete", comment: "Delete button"),
+        title: i18n.delete.description,
         action: #selector(didPressDeleteButton))
       ] + customMenuItems.map({ $0.menuItem })
     menu.arrowDirection = .up

@@ -18,8 +18,13 @@ class Tests: XCTestCase {
   override func tearDown() {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
   }
+}
 
-    func testHistory() {
+ // MARK: - History
+
+extension Tests {
+
+  func testHistory() {
     let data = RBProjectData(name: "Test")
     let history = RBHistory(dataRef: data)
     history.limit = 5
@@ -30,65 +35,83 @@ class Tests: XCTestCase {
     XCTAssertEqual(history.cursor, 0)
     XCTAssertEqual(history.stack.count, 1)
 
-    let state1 = [
-      RBRhythmData(position: 0, duration: 1)
-    ]
-    data.rhythm = state1
+    let state1 = RBHistoryItem(
+      rhythmData: [
+        RBRhythmData(position: 0, duration: 1)
+      ],
+      duration: 1)
+    data.rhythm = state1.rhythmData
+    data.duration = state1.duration
     history.push()
     XCTAssertEqual(history.cursor, 1)
     XCTAssertEqual(history.stack.count, 2)
 
-    let state2 = [
-      RBRhythmData(position: 0, duration: 1),
-      RBRhythmData(position: 1, duration: 1),
-    ]
-    data.rhythm = state2
+    let state2 = RBHistoryItem(
+      rhythmData:  [
+           RBRhythmData(position: 0, duration: 1),
+           RBRhythmData(position: 1, duration: 1),
+         ],
+      duration: 2)
+    data.rhythm = state2.rhythmData
+    data.duration = state2.duration
     history.push()
     XCTAssertEqual(history.cursor, 2)
     XCTAssertEqual(history.stack.count, 3)
 
-    let state3 = [
-      RBRhythmData(position: 0, duration: 1),
-      RBRhythmData(position: 1, duration: 1),
-      RBRhythmData(position: 2, duration: 1),
-    ]
-    data.rhythm = state3
+    let state3 = RBHistoryItem(
+      rhythmData: [
+        RBRhythmData(position: 0, duration: 1),
+        RBRhythmData(position: 1, duration: 1),
+        RBRhythmData(position: 2, duration: 1),
+      ],
+      duration: 3)
+    data.rhythm = state3.rhythmData
+    data.duration = 3
     history.push()
     XCTAssertEqual(history.cursor, 3)
     XCTAssertEqual(history.stack.count, 4)
 
-    let state4 = [
-      RBRhythmData(position: 0, duration: 1),
-      RBRhythmData(position: 1, duration: 1),
-      RBRhythmData(position: 2, duration: 1),
-      RBRhythmData(position: 3, duration: 1),
-    ]
-    data.rhythm = state4
+    let state4 = RBHistoryItem(
+      rhythmData: [
+        RBRhythmData(position: 0, duration: 1),
+        RBRhythmData(position: 1, duration: 1),
+        RBRhythmData(position: 2, duration: 1),
+        RBRhythmData(position: 3, duration: 1),
+      ],
+      duration: 4)
+    data.rhythm = state4.rhythmData
+    data.duration = state4.duration
     history.push()
     XCTAssertEqual(history.cursor, 4)
     XCTAssertEqual(history.stack.count, 5)
 
-    let state5 = [
-      RBRhythmData(position: 0, duration: 1),
-      RBRhythmData(position: 1, duration: 1),
-      RBRhythmData(position: 2, duration: 1),
-      RBRhythmData(position: 3, duration: 1),
-      RBRhythmData(position: 4, duration: 1),
-    ]
-    data.rhythm = state5
+    let state5 = RBHistoryItem(
+      rhythmData: [
+        RBRhythmData(position: 0, duration: 1),
+        RBRhythmData(position: 1, duration: 1),
+        RBRhythmData(position: 2, duration: 1),
+        RBRhythmData(position: 3, duration: 1),
+        RBRhythmData(position: 4, duration: 1),
+      ],
+      duration: 5)
+    data.rhythm = state5.rhythmData
+    data.duration = state5.duration
     history.push()
     XCTAssertEqual(history.cursor, 4)
     XCTAssertEqual(history.stack.count, 5)
 
-    let state6 = [
-      RBRhythmData(position: 0, duration: 1),
-      RBRhythmData(position: 1, duration: 1),
-      RBRhythmData(position: 2, duration: 1),
-      RBRhythmData(position: 3, duration: 1),
-      RBRhythmData(position: 4, duration: 1),
-      RBRhythmData(position: 5, duration: 1),
-    ]
-    data.rhythm = state6
+    let state6 = RBHistoryItem(
+      rhythmData: [
+        RBRhythmData(position: 0, duration: 1),
+        RBRhythmData(position: 1, duration: 1),
+        RBRhythmData(position: 2, duration: 1),
+        RBRhythmData(position: 3, duration: 1),
+        RBRhythmData(position: 4, duration: 1),
+        RBRhythmData(position: 5, duration: 1),
+      ],
+      duration: 6)
+    data.rhythm = state6.rhythmData
+    data.duration = state6.duration
     history.push()
     XCTAssertEqual(history.cursor, 4)
     XCTAssertEqual(history.stack.count, 5)
@@ -143,11 +166,14 @@ class Tests: XCTestCase {
     XCTAssertEqual(history.undo(), state5)
     XCTAssertEqual(history.undo(), state4)
 
-    let newState = [
-      RBRhythmData(position: 0, duration: 0),
-      RBRhythmData(position: 10, duration: 0),
-    ]
-    data.rhythm = newState
+    let newState = RBHistoryItem(
+      rhythmData: [
+        RBRhythmData(position: 0, duration: 0),
+        RBRhythmData(position: 10, duration: 0),
+      ],
+      duration: 0)
+    data.rhythm = newState.rhythmData
+    data.duration = newState.duration
     history.push()
 
     XCTAssertEqual(history.cursor, 3)

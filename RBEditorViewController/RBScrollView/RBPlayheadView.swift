@@ -43,12 +43,16 @@ public class RBPlayheadView: UIView {
   /// Shape of the playhead triangle.
   public var shapeType: RBPlayheadShape = .range
 
+  /// Color of the playhead
+  public var playheadColor: UIColor = .gray { didSet{ setNeedsLayout() }}
+  /// Border color of the playhead.
+  public var playheadBorderColor: UIColor = .gray { didSet{ setNeedsLayout() }}
   /// Playhead's guide line color that draws on timetable.
   public var lineColor: UIColor = .white { didSet{ setNeedsLayout() }}
   /// Playhead's guide line height that draws on timetable. It's best to match timetable's content height.
   public var lineHeight: CGFloat = 0 { didSet{ setNeedsLayout() }}
   /// Playhead's guide line width that draws on timetable.
-  public var lineWidth: CGFloat = 1 / UIScreen.main.scale { didSet{ setNeedsLayout() }}
+  public var lineWidth: CGFloat = 1 { didSet{ setNeedsLayout() }}
   /// Line layer that draws playhead's position guide on timetable.
   private var lineLayer = CALayer()
   /// Optional image view that initilizes if an image assings.
@@ -59,6 +63,12 @@ public class RBPlayheadView: UIView {
   private var panningView = UIView()
   /// The hit are offset for panning.
   public var panningOffset: CGFloat = 20
+
+  public override var isUserInteractionEnabled: Bool {
+    didSet {
+      panningView.isUserInteractionEnabled = self.isUserInteractionEnabled
+    }
+  }
 
   // MARK: Init
 
@@ -149,6 +159,7 @@ public class RBPlayheadView: UIView {
       path.addArc(tangent1End: point4, tangent2End: point5, radius: cornerRadius)
       path.addArc(tangent1End: point5, tangent2End: point1, radius: cornerRadius)
       path.addArc(tangent1End: point1, tangent2End: point2, radius: cornerRadius)
+      path.closeSubpath()
 
     case .range:
       let point1 = CGPoint(x: frame.size.width, y: 0)
@@ -159,11 +170,14 @@ public class RBPlayheadView: UIView {
       path.addArc(tangent1End: point2, tangent2End: point3, radius: cornerRadius)
       path.addArc(tangent1End: point3, tangent2End: point1, radius: cornerRadius)
       path.addArc(tangent1End: point1, tangent2End: point2, radius: cornerRadius)
+      path.closeSubpath()
     }
 
     shapeLayer.path = path
     shapeLayer.shadowPath = path
-    shapeLayer.fillColor = tintColor.cgColor
+    shapeLayer.fillColor = playheadColor.cgColor
+    shapeLayer.strokeColor = playheadBorderColor.cgColor
+    shapeLayer.lineWidth = 1
     shapeLayer.shadowColor = UIColor.black.cgColor
     shapeLayer.shadowRadius = 1
   }

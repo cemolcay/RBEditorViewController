@@ -21,28 +21,28 @@ class RBCell: RBScrollViewCell {
   }
 
   private func commonInit() {
-    layer.borderColor = UIColor.black.cgColor
+    layer.borderColor = UIColor.rhythmCellBorderColor.cgColor
     layer.borderWidth = 1
-    layer.backgroundColor = UIColor.lightGray.cgColor
+    layer.backgroundColor = UIColor.rhythmCellBackgroundColor.cgColor
     layer.cornerRadius = 8
     layer.masksToBounds = true
   }
 
   override func layoutSubviews() {
     super.layoutSubviews()
-    layer.borderColor = isSelected ? UIColor.red.cgColor : UIColor.black.cgColor
+    layer.borderColor = isSelected ? UIColor.rhythmCellSelectedBorderColor.cgColor : UIColor.rhythmCellBorderColor.cgColor
   }
 }
 
 class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollViewDataSource, RBScrollViewDelegate {
-  @IBOutlet weak var contentView: UIView?
+  let contentView = UIView(frame: .zero)
   let actionView = RBActionView(frame: .zero)
   let toolbarView = RBToolbarView(frame: .zero)
-  let patternView = RBScrollView(frame: .zero)
-  let actionViewWidth: CGFloat = 80
-  let toolbarHeight: CGFloat = 80
+  let gridView = RBScrollView(frame: .zero)
+  let actionViewWidth: CGFloat = 100
+  let toolbarHeight: CGFloat = 100
 
-  var projectData = RBProjectData(name: "Project")
+  var projectData: RBProjectData! = RBProjectData(name: "Project")
   var history: RBHistory!
   var mode: RBMode = .rhythm
   var selectedRhythmData: RBRhythmData?
@@ -52,44 +52,70 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    contentView?.addSubview(actionView)
-    actionView.translatesAutoresizingMaskIntoConstraints = false
-    actionView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor).isActive = true
-    actionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
-    actionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-    actionView.widthAnchor.constraint(equalToConstant: actionViewWidth).isActive = true
-    actionView.selectMode(at: mode.rawValue)
-    actionView.delegate = self
+    view.addSubview(contentView)
+    contentView.translatesAutoresizingMaskIntoConstraints = false
+    contentView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+    contentView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+    contentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+    contentView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
 
-    contentView?.addSubview(toolbarView)
+    contentView.addSubview(actionView)
+    actionView.translatesAutoresizingMaskIntoConstraints = false
+    actionView.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
+    actionView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+    actionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
+    actionView.widthAnchor.constraint(equalToConstant: actionViewWidth).isActive = true
+    actionView.backgroundColor = UIColor.actionBarBackgroundColor
+    actionView.delegate = self
+ 
+    contentView.addSubview(toolbarView)
     toolbarView.translatesAutoresizingMaskIntoConstraints = false
     toolbarView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
-    toolbarView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor).isActive = true
-    toolbarView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+    toolbarView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+    toolbarView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
     toolbarView.heightAnchor.constraint(equalToConstant: toolbarHeight).isActive = true
-    updateToolbar()
+    toolbarView.backgroundColor = UIColor.toolbarBackgroundColor
+    actionView.selectMode(mode: mode)
 
-    contentView?.addSubview(patternView)
-    patternView.translatesAutoresizingMaskIntoConstraints = false
-    patternView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
-    patternView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor).isActive = true
-    patternView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
-    patternView.bottomAnchor.constraint(equalTo: toolbarView.topAnchor).isActive = true
+    contentView.addSubview(gridView)
+    gridView.translatesAutoresizingMaskIntoConstraints = false
+    gridView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
+    gridView.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
+    gridView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
+    gridView.bottomAnchor.constraint(equalTo: toolbarView.topAnchor).isActive = true
+    gridView.backgroundColor = UIColor.gridBackgroundColor
+    gridView.playheadView.playheadColor = UIColor.playheadBackgroundColor
+    gridView.playheadView.playheadBorderColor = UIColor.playheadBorderColor
+    gridView.rangeheadView.playheadColor = UIColor.rangeheadBackgroundColor
+    gridView.rangeheadView.playheadBorderColor = UIColor.rangeheadBorderColor
+    gridView.measureLineColor = UIColor.measureLineColor
+    gridView.measureBackgroundColor = UIColor.measureBackgroundColor
+    gridView.measureLabelTextColor = UIColor.measureTextColor
+    gridView.playheadView.isUserInteractionEnabled = false
 
-    patternView.rbDelegate = self
-    patternView.rbDataSource = self
-    patternView.reloadData()
-    patternView.rangeheadView.position = projectData.duration
-    
+    setup()
+  }
+
+  func setup() {
+    guard projectData != nil else { return }
     history = RBHistory(dataRef: projectData)
-    history.push()
+    history.historyDidChangeCallback = {
+      DispatchQueue.main.async {
+        self.actionView.getActionButton(for: .undo)?.isEnabled = self.history.canUndo
+        self.actionView.getActionButton(for: .redo)?.isEnabled = self.history.canRedo
+      }
+    }
+
+    gridView.rbDelegate = self
+    gridView.rbDataSource = self
+    gridView.rangeheadView.position = projectData.duration
     projectDataDidChange()
   }
 
   func reload() {
-    self.patternView.reloadData()
-    self.patternView.fixOverlaps()
-    self.patternView.snapRangeheadToLastCell()
+    guard projectData != nil else { return }
+    gridView.reloadData()
+    gridView.rangeheadView.position = projectData.duration
   }
 
   func updateToolbar() {
@@ -98,7 +124,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
       let toolbarMode = RecordToolbarMode(
         props: RecordToolbarModeProps(
           data: projectData,
-          rangeheadPosition: patternView.rangeheadView.position,
+          rangeheadPosition: gridView.rangeheadView.position,
           didAddRecordingCallback: recordToolbarDidAddRecording,
           didUpdateRecordingCallback: recordToolbarDidUpdateRecording(duration:),
           didEndRecordingCallback: recordToolbarDidEndRecording))
@@ -109,16 +135,18 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
           props: RhythmToolbarModeProps(
             rhythmData: nil,
             didAddRhythmCallback: rhythmToolbar(didAdd:),
+            didAddRestCallback: rhythmToolbar(didAdd:),
             didUpdateRhythmCallback: nil))
-        toolbarMode.toolbarTitle = "Add Rhythm"
+        toolbarMode.toolbarTitle = i18n.addRhythm.description
         toolbarView.render(mode: toolbarMode)
       } else {
         let toolbarMode = RhythmToolbarMode(
           props: RhythmToolbarModeProps(
             rhythmData: selectedRhythmData,
             didAddRhythmCallback: nil,
+            didAddRestCallback: nil,
             didUpdateRhythmCallback: rhythmToolbar(didUpdate:)))
-            toolbarMode.toolbarTitle = "Edit Rhythm"
+        toolbarMode.toolbarTitle = i18n.editRhythm.description
         toolbarView.render(mode: toolbarMode)
       }
     case .arp:
@@ -148,15 +176,26 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     case .snapshots:
       let toolbarMode = SnapshotToolbarMode(
         props: SnapshotToolbarModeProps(
-          snapshotData: projectData.snapshotData,
+          snapshotData: projectData?.snapshotData ?? RBSnapshotData(),
           didPressAddButtonCallback: snapshotToolbarDidPressAddButton,
           didPressMIDICCButtonCallback: snapshotToolbarDidPressMIDICCButton,
-          didSelectSnapshotAtIndex: snapshotToolbarDidSelectSnapshot(at:)))
+          didSelectSnapshotAtIndex: snapshotToolbarDidSelectSnapshot(at:),
+          didDeleteSnapshotAtIndex: snapshotToolbarDidDeleteSnapshot(at:),
+          didRequestSnapshotImageAt: snapshotToolbarDidRequestSnapshotImage(at:)))
       toolbarView.render(mode: toolbarMode)
     }
   }
 
-  func projectDataDidChange() {}
+  func projectDataDidChange(shouldReload: Bool = true) {
+    // If not quantizing then push history.
+    if gridView.isQuantizing == false {
+      history.push()
+    }
+    // Reload if needed.
+    if shouldReload {
+      reload()
+    }
+  }
 
   // MARK: RBActionViewDelegate
 
@@ -164,17 +203,35 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     switch action {
     case .clear:
       selectedRhythmData = nil
-      projectData.rhythm = []
-      history.push()
-      reload()
+      projectData?.rhythm = []
+      projectData?.duration = 0
+      projectDataDidChange()
       updateToolbar()
     case .quantize:
-      patternView.quantize(zoomLevel: patternView.zoomLevel)
+      let pickerData = PickerData(
+        title: i18n.selectQuantizeLevel.description,
+        rows: [
+          i18n.wholeNote.description,
+          i18n.quarterNote.description,
+          i18n.sixteenthNote.description
+        ],
+        initialSelectionIndex: 0,
+        cancelCallback: nil,
+        doneCallback: { item, index in
+          DispatchQueue.main.async {
+            self.gridView.quantize(zoomLevel: index)
+          }
+        })
+      presentPicker(data: pickerData)
     case .undo:
-      projectData.rhythm = history.undo() ?? projectData.rhythm
+      guard let historyItem = history.undo() else { return }
+      projectData?.rhythm = historyItem.rhythmData
+      projectData?.duration = historyItem.duration
       reload()
     case .redo:
-      projectData.rhythm = history.redo() ?? projectData.rhythm
+      guard let historyItem = history.redo() else { return }
+      projectData?.rhythm = historyItem.rhythmData
+      projectData?.duration = historyItem.duration
       reload()
     }
   }
@@ -187,11 +244,11 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   // MARK: RBScrollViewDataSource
 
   func numberOfCells(in rbScrollView: RBScrollView) -> Int {
-    return projectData.rhythm.count
+    return projectData?.rhythm.count ?? 0
   }
 
   func rbScrollView(_ rbScrollView: RBScrollView, cellAt index: Int) -> RBScrollViewCell {
-    let cellData = projectData.rhythm[index]
+    guard let cellData = projectData?.rhythm[safe: index] else { return RBScrollViewCell(frame: .zero) }
     let cell = RBCell(frame: .zero)
     cell.position = cellData.position
     cell.duration = cellData.duration
@@ -201,19 +258,18 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   // MARK: RBScrollViewDelegate
 
   func rbScrollView(_ scrollView: RBScrollView, didUpdate cell: RBScrollViewCell, at index: Int) {
-    projectData.rhythm[index].position = cell.position
-    projectData.rhythm[index].duration = cell.duration
-    projectDataDidChange()
+    projectData?.rhythm[safe: index]?.position = cell.position
+    projectData?.rhythm[safe: index]?.duration = cell.duration
   }
 
   func rbScrollView(_ scrollView: RBScrollView, didDelete cell: RBScrollViewCell, at index: Int) {
-    projectData.rhythm.remove(at: index)
-    history.push()
-    projectDataDidChange()
+    guard projectData?.rhythm.indices.contains(index) == true else { return }
+    projectData?.rhythm.remove(at: index)
+    projectDataDidChange(shouldReload: !gridView.isQuantizing)
   }
 
   func rbScrollView(_ scrollView: RBScrollView, didSelect cell: RBScrollViewCell, at index: Int) {
-    selectedRhythmData = projectData.rhythm[index]
+    selectedRhythmData = projectData?.rhythm[safe: index]
     updateToolbar()
   }
 
@@ -223,48 +279,47 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   }
 
   func rbScrollViewDidUpdatePlayhead(_ scrollView: RBScrollView) {
-
+    return
   }
 
-  func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView) {
-    projectData.duration = scrollView.rangeheadView.position
+  func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView, withPanGesture: Bool) {
+    projectData?.duration = scrollView.rangeheadView.position
+    guard withPanGesture else { return }
+    history.push()
     if mode == .record {
       updateToolbar()
     }
   }
 
   func rbScrollViewDidMoveCell(_ scrollView: RBScrollView) {
-    history.push()
-    projectDataDidChange()
+    gridView.snapRangeheadToLastCell()
+    projectDataDidChange(shouldReload: false)
   }
 
   func rbScrollViewDidResizeCell(_ scrollView: RBScrollView) {
-    history.push()
-    projectDataDidChange()
+    gridView.snapRangeheadToLastCell()
+    projectDataDidChange(shouldReload: false)
   }
 
   func rbScrollViewDidQuantize(_ scrollView: RBScrollView) {
-    history.push()
     projectDataDidChange()
   }
 
   // MARK: RecordToolbarModeView
 
   func recordToolbarDidAddRecording() {
-    patternView.reloadData()
-    projectDataDidChange()
+    gridView.reloadData()
   }
 
   func recordToolbarDidUpdateRecording(duration: Double) {
-    let index = projectData.rhythm.count - 1
+    let index = (projectData?.rhythm.count ?? 0) - 1
     guard index >= 0 else { return }
-    patternView.updateDurationOfCell(at: index, duration: duration)
-    projectDataDidChange()
+    gridView.updateDurationOfCell(at: index, duration: duration)
   }
 
   func recordToolbarDidEndRecording() {
-    patternView.snapRangeheadToLastCell()
-    history.push()
+    gridView.snapRangeheadToLastCell()
+    gridView.fixOverlaps()
     updateToolbar()
     projectDataDidChange()
   }
@@ -272,69 +327,139 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
   // MARK: RhythmToolbarModeView
 
   func rhythmToolbar(didAdd rhythmData: RBRhythmData) {
-    rhythmData.position = patternView.rangeheadView.position
-    projectData.rhythm.append(rhythmData)
-    reload()
-    history.push()
+    rhythmData.position = gridView.rangeheadView.position
+    projectData?.rhythm.append(rhythmData)
+    gridView.reloadData()
+    gridView.fixOverlaps()
+    gridView.snapRangeheadToLastCell()
     projectDataDidChange()
   }
 
-  func rhythmToolbar(didUpdate rhythmData: RBRhythmData) {
-    reload()
+  func rhythmToolbar(didAdd rest: Double) {
+    gridView.rangeheadView.position += rest
+    projectData?.duration = gridView.rangeheadView.position
     history.push()
+  }
+
+  func rhythmToolbar(didUpdate rhythmData: RBRhythmData) {
+    gridView.reloadData()
+    gridView.fixOverlaps()
+    gridView.snapRangeheadToLastCell()
     projectDataDidChange()
   }
 
   // MARK: ArpToolbarModeView
 
   func arpToolbar(didUpdate arp: RBArp) {
-    history.push()
-    reload()
-    projectDataDidChange()
+    projectDataDidChange(shouldReload: false)
   }
 
   // MARK: VelocityToolbarModeView
 
   func velocityToolbar(didUpdate velocity: Int, globally: Bool) {
     if globally {
-      projectData.rhythm.forEach({ $0.velocity = velocity })
+      projectData?.rhythm.forEach({ $0.velocity = velocity })
     }
-    history.push()
-    projectDataDidChange()
+    projectDataDidChange(shouldReload: false)
   }
 
   // MARK: RatchetToolbarModeView
 
   func ratchetToolbar(didUpdate ratchet: RBRatchet) {
-    history.push()
-    reload()
-    projectDataDidChange()
+    projectDataDidChange(shouldReload: false)
   }
 
   // MARK: TransposeToolbarModeView
 
   func transposeToolbar(didUpdate transpose: Int) {
-    history.push()
-    projectDataDidChange()
+    projectDataDidChange(shouldReload: false)
   }
 
   // MARK: SnapshotToolbarModeView
 
   func snapshotToolbarDidPressAddButton() {
-    projectData.snapshot()
+    projectData?.snapshot()
     updateToolbar()
   }
 
   func snapshotToolbarDidPressMIDICCButton() {
-
+    let pickerData = PickerData(
+      title: i18n.snapshotMIDICCSettingsTitle.description,
+      rows: [Int](0..<128).map({ "CC#\($0)" }),
+      initialSelectionIndex: 0,
+      cancelCallback: nil,
+      doneCallback: { item, index in
+        DispatchQueue.main.async {
+          self.projectData?.snapshotData.cc = index
+          self.updateToolbar()
+        }
+      })
+    presentPicker(data: pickerData)
   }
 
   func snapshotToolbarDidSelectSnapshot(at index: Int) {
-    guard projectData.snapshotData.snapshots.indices.contains(index) else { return }
-    projectData.rhythm = projectData.snapshotData.snapshots[index].map({ $0.copy() }).compactMap({ $0 as? RBRhythmData })
-    patternView.unselectCells()
-    reload()
-    updateToolbar()
+    guard let snapshot = projectData?.snapshotData.snapshots[safe: index]?.copy() else { return }
+    projectData?.rhythm = snapshot.rhythmData
+    projectData?.duration = snapshot.duration
+    gridView.unselectCells()
     projectDataDidChange()
+  }
+
+  func snapshotToolbarDidDeleteSnapshot(at index: Int) {
+    guard projectData?.snapshotData.snapshots.indices.contains(index) == true else { return }
+    projectData?.snapshotData.snapshots.remove(at: index)
+    projectDataDidChange()
+    updateToolbar()
+  }
+
+  func snapshotToolbarDidRequestSnapshotImage(at index: Int) -> UIImage? {
+    guard let data = projectData?.snapshotData.snapshots[safe: index] else { return nil }
+    let width: CGFloat = 100
+    let padding: CGFloat = 8
+    let rect = CGRect(x: 0, y: 0, width: width, height: width)
+    UIGraphicsBeginImageContextWithOptions(rect.size, true, UIScreen.main.scale)
+
+    let scale = width / CGFloat(data.duration)
+    let context = UIGraphicsGetCurrentContext()
+    context?.setFillColor(UIColor.gridBackgroundColor.cgColor)
+    context?.fill(rect)
+
+    // Draw lines
+    for rhythm in data.rhythmData {
+      let sepWidth = 1.0 / UIScreen.main.scale
+      let position = (CGFloat(rhythm.position) * scale)
+      let duration = (CGFloat(rhythm.duration) * scale)
+      let height = width - (padding * 2)
+      // First border
+      context?.setFillColor(UIColor.rhythmCellBorderColor.cgColor)
+      var border = CGRect(
+        x: position,
+        y: padding,
+        width: sepWidth,
+        height: height)
+      context?.fill(border)
+
+      // Cell
+      context?.setFillColor(UIColor.rhythmCellBackgroundColor.cgColor)
+      let cell = CGRect(
+        x: position + sepWidth,
+        y: padding,
+        width: duration - (sepWidth * 2),
+        height: height)
+      context?.fill(cell)
+
+      // Last border
+      context?.setFillColor(UIColor.rhythmCellBorderColor.cgColor)
+      border = CGRect(
+        x: position + duration - sepWidth,
+        y: padding,
+        width: sepWidth,
+        height: height)
+      context?.fill(border)
+    }
+
+    let image = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+    return image
   }
 }

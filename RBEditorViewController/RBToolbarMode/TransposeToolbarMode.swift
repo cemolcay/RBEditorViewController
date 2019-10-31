@@ -32,10 +32,15 @@ class TransposeToolbarModeView: RBToolbarModeView<TransposeToolbarModeProps> {
     guard let data = props.rhythmData else { selectCellAlert(); return }
 
     stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
+    stackView.spacing = 8
     stackView.addArrangedSubview(transposeLabel)
     stackView.addArrangedSubview(transposeSlider)
 
     transposeLabel.text = "\(Int(data.transpose))"
+    transposeLabel.textColor = UIColor.toolbarButtonTextColor
+    transposeLabel.widthAnchor.constraint(equalToConstant: 30).isActive = true
+
+    transposeSlider.tintColor = UIColor.toolbarButtonTextColor
     transposeSlider.minimumValue = -24
     transposeSlider.maximumValue = 24
     transposeSlider.value = Float(data.transpose)
@@ -52,7 +57,7 @@ class TransposeToolbarModeView: RBToolbarModeView<TransposeToolbarModeProps> {
 
 final class TransposeToolbarMode: RBToolbarMode {
   typealias PropType = TransposeToolbarModeProps
-  var toolbarTitle: String = "Transpose"
+  var toolbarTitle: String = i18n.transpose.description
   var props = TransposeToolbarModeProps()
 
   var view: RBToolbarModeView<TransposeToolbarModeProps> {

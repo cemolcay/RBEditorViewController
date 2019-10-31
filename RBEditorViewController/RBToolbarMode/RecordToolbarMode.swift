@@ -16,12 +16,12 @@ class RecordToolbarModeProps: RBToolbarModeProps {
   var didEndRecordingCallback: (() -> Void)?
 
   required init() {
-    self.data = RBProjectData(name: "recording")
+    self.data = RBProjectData(name: i18n.recording.description)
     self.rangeheadPosition = 0
   }
 
   init(
-    data: RBProjectData = RBProjectData(name: "recording"),
+    data: RBProjectData = RBProjectData(name: i18n.recording.description),
     rangeheadPosition: Double = 0,
     didAddRecordingCallback: (() -> Void)?,
     didUpdateRecordingCallback: ((Double) -> Void)?,
@@ -35,7 +35,8 @@ class RecordToolbarModeProps: RBToolbarModeProps {
 }
 
 class RecordToolbarModeView: RBToolbarModeView<RecordToolbarModeProps>, RBTapRecordViewDelegate {
-  var endButton = UIButton(type: .system)
+  let endButton = UIButton(type: .system)
+  let titleLabel = UILabel()
 
   override func render() {
     super.render()
@@ -44,8 +45,8 @@ class RecordToolbarModeView: RBToolbarModeView<RecordToolbarModeProps>, RBTapRec
     recordView.startPosition = props.rangeheadPosition
     recordView.delegate = self
 
-    let titleLabel = UILabel()
-    titleLabel.text = "Tap to Record"
+    titleLabel.text = i18n.tapToRecord.description
+    titleLabel.textColor = UIColor.toolbarButtonTextColor
     titleLabel.textAlignment = .center
     recordView.addSubview(titleLabel)
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -54,16 +55,19 @@ class RecordToolbarModeView: RBToolbarModeView<RecordToolbarModeProps>, RBTapRec
     titleLabel.topAnchor.constraint(equalTo: recordView.topAnchor).isActive = true
     titleLabel.bottomAnchor.constraint(equalTo: recordView.bottomAnchor).isActive = true
 
-    endButton.setTitle("End", for: .normal)
+    endButton.setTitle(i18n.end.description, for: .normal)
+    endButton.setTitleColor(UIColor.toolbarButtonTextColor, for: .normal)
     endButton.addTarget(recordView, action: #selector(recordView.doneButtonPressed(sender:)), for: .touchUpInside)
     endButton.isHidden = true
 
+    scrollView.isScrollEnabled = false
     stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
     stackView.addArrangedSubview(recordView)
     stackView.addArrangedSubview(endButton)
   }
 
   func showEndButton() {
+    titleLabel.text = "[\(i18n.recording)] \(i18n.tapToRecord)"
     UIView.animate(
       withDuration: 0.3,
       delay: 0,
@@ -110,7 +114,7 @@ class RecordToolbarModeView: RBToolbarModeView<RecordToolbarModeProps>, RBTapRec
 final class RecordToolbarMode: RBToolbarMode {
   typealias PropType = RecordToolbarModeProps
   var props = RecordToolbarModeProps()
-  var toolbarTitle = "Record Rhythm"
+  var toolbarTitle = i18n.recordRhythm.description
 
   var view: RBToolbarModeView<RecordToolbarModeProps> {
     return RecordToolbarModeView(props: props)

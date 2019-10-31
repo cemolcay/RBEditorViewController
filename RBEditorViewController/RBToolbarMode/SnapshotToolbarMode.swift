@@ -13,6 +13,8 @@ class SnapshotToolbarModeProps: RBToolbarModeProps {
   var didPressAddButtonCallback: (() -> Void)?
   var didPressMIDICCButtonCallback: (() -> Void)?
   var didSelectSnapshotAtIndex: ((_ index: Int) -> Void)?
+  var didDeleteSnapshotAtIndex: ((_ index: Int) -> Void)?
+  var didRequestSnapshotImageAt: ((_ index: Int) -> UIImage?)?
 
   required init() {
     snapshotData = RBSnapshotData()
@@ -22,18 +24,27 @@ class SnapshotToolbarModeProps: RBToolbarModeProps {
     snapshotData: RBSnapshotData,
     didPressAddButtonCallback: (() -> Void)?,
     didPressMIDICCButtonCallback: (() -> Void)?,
-    didSelectSnapshotAtIndex: ((_ index: Int) -> Void)?) {
+    didSelectSnapshotAtIndex: ((_ index: Int) -> Void)?,
+    didDeleteSnapshotAtIndex: ((_ index: Int) -> Void)?,
+    didRequestSnapshotImageAt: ((_ index: Int) -> UIImage?)?) {
     self.snapshotData = snapshotData
     self.didPressAddButtonCallback = didPressAddButtonCallback
     self.didPressMIDICCButtonCallback = didPressMIDICCButtonCallback
     self.didSelectSnapshotAtIndex = didSelectSnapshotAtIndex
+    self.didDeleteSnapshotAtIndex = didDeleteSnapshotAtIndex
+    self.didRequestSnapshotImageAt = didRequestSnapshotImageAt
   }
 }
 
 class RBSnapshotCellView: UIView {
   var button = UIButton(type: .system)
-  var image = UIImageView()
+  var imageView = UIImageView()
+  var didPressDeleteButtonCallback: (() -> Void)?
 
+  open override var canBecomeFirstResponder: Bool {
+    return true
+  }
+  
   override init(frame: CGRect) {
     super.init(frame: frame)
     commonInit()
@@ -45,23 +56,45 @@ class RBSnapshotCellView: UIView {
   }
 
   func commonInit() {
-    addSubview(image)
+    addSubview(imageView)
     addSubview(button)
 
-    image.image = nil
+    imageView.image = nil
     button.setTitle(nil, for: .normal)
 
-    image.translatesAutoresizingMaskIntoConstraints = false
-    image.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-    image.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
-    image.topAnchor.constraint(equalTo: topAnchor).isActive = true
-    image.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    imageView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
+    imageView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+    imageView.topAnchor.constraint(equalTo: topAnchor).isActive = true
+    imageView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
 
     button.translatesAutoresizingMaskIntoConstraints = false
     button.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
     button.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
     button.topAnchor.constraint(equalTo: topAnchor).isActive = true
     button.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+
+    let longPressGesure = UILongPressGestureRecognizer(target: self, action: #selector(didLongPress(longPress:)))
+    addGestureRecognizer(longPressGesure)
+  }
+
+  @objc public func didLongPress(longPress: UILongPressGestureRecognizer) {
+    guard let superview = superview else { return }
+    becomeFirstResponder()
+
+    let menu = UIMenuController.shared
+    menu.menuItems = [
+      UIMenuItem(
+        title: i18n.delete.description,
+        action: #selector(didPressDeleteButton))
+      ]
+    menu.arrowDirection = .up
+    menu.setTargetRect(frame, in: superview)
+    menu.setMenuVisible(true, animated: true)
+  }
+
+  @objc public func didPressDeleteButton() {
+    didPressDeleteButtonCallback?()
   }
 }
 
@@ -75,14 +108,17 @@ class SnapshotToolbarModeView: RBToolbarModeView<SnapshotToolbarModeProps> {
     super.render()
     let snapshots = props.snapshotData
 
-    addButton.setTitle("Add", for: .normal)
+    addButton.setTitle(i18n.add.description, for: .normal)
+    addButton.setTitleColor(UIColor.toolbarButtonTextColor, for: .normal)
     addButton.addTarget(self, action: #selector(addButtonPressed(sender:)), for: .touchUpInside)
 
     ccButton.setTitle("CC#\(snapshots.cc)", for: .normal)
+    ccButton.setTitleColor(UIColor.toolbarButtonTextColor, for: .normal)
     ccButton.addTarget(self, action: #selector(ccButtonPressed(sender:)), for: .touchUpInside)
 
     stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
     scrollView.isScrollEnabled = false
+    stackView.spacing = 16
     stackView.addArrangedSubview(addButton)
     stackView.addArrangedSubview(snapshotScroll)
     stackView.addArrangedSubview(ccButton)
@@ -99,12 +135,26 @@ class SnapshotToolbarModeView: RBToolbarModeView<SnapshotToolbarModeProps> {
 
     for index in 0..<snapshots.snapshots.count {
       let cell = RBSnapshotCellView(frame: .zero)
+      snapshotStack.addArrangedSubview(cell)
+
       cell.translatesAutoresizingMaskIntoConstraints = false
+      cell.widthAnchor.constraint(equalTo: cell.heightAnchor).isActive = true
       cell.layer.borderColor = UIColor.black.cgColor
       cell.layer.borderWidth = 1
       cell.button.tag = index
       cell.button.addTarget(self, action: #selector(snapshotSelected(sender:)), for: .touchUpInside)
-      snapshotStack.addArrangedSubview(cell)
+      cell.didPressDeleteButtonCallback = {
+        self.props.didDeleteSnapshotAtIndex?(index)
+      }
+
+      // Request snapshot image.
+      DispatchQueue.global(qos: .background).async {
+        if let image = self.props.didRequestSnapshotImageAt?(index) {
+          DispatchQueue.main.async {
+            cell.imageView.image = image
+          }
+        }
+      }
     }
   }
 
@@ -124,7 +174,7 @@ class SnapshotToolbarModeView: RBToolbarModeView<SnapshotToolbarModeProps> {
 final class SnapshotToolbarMode: RBToolbarMode {
   typealias PropType = SnapshotToolbarModeProps
   var props = SnapshotToolbarModeProps()
-  var toolbarTitle: String = "Snapshots"
+  var toolbarTitle: String = i18n.snapshots.description
 
   var view: RBToolbarModeView<SnapshotToolbarModeProps> {
     return SnapshotToolbarModeView(props: props)

@@ -1,0 +1,58 @@
+/* 
+  Localizable.strings
+  RBEditorViewController
+
+  Created by cem.olcay on 31/10/2019.
+  Copyright © 2019 cemolcay. All rights reserved.
+*/
+
+"quantize" = "Quantize";
+"selectQuantizeLevel" = "Select quantize level";
+"addRhythm" = "Add Rhythm";
+"editRhythm" = "Edit Rhythm";
+"editArp" = "Edit Arp";
+"editRatchet" = "Edit Ratchet";
+"editVelocity" = "Edit Velocity";
+"recording" = "Recording";
+"tapToRecord" = "Tap to Record";
+"recordRhythm" = "Record Rhythm";
+"transpose" = "Transpose";
+"record" = "Record";
+"rhythm" = "Rhythm";
+"arp" = "Arp";
+"ratchet" = "Ratchet";
+"clear" = "Clear";
+"undo" = "Undo";
+"note" = "Note";
+"`default`" = "Default";
+"highFirstOrder" = "High First";
+"lowFirstOrder" = "Low First";
+"none" = "None";
+"rest" = "Rest";
+"redo" = "Redo";
+"add" = "Add";
+"end" = "End";
+"global" = "Global";
+"selectCell" = "Select a Rhythm";
+"snapshotMIDICCSettingsTitle" = "Snapshot";
+"doubleWholeNote" = "Double Whole";
+"wholeNote" = "Whole";
+"halfNote" = "Half";
+"quarterNote" = "Quarter";
+"eighthNote" = "Eighth";
+"sixteenthNote" = "Sixteenth";
+"thirtysecondNote" = "Thirysecond";
+"sixtyfourthNote" = "Sixtyfourth";
+"dotted" = "Dotted";
+"triplet" = "Triplet";
+"quintuplet" = "Quintuplet";
+"arpeggiator" = "Arpeggiator";
+"arpeggio" = "Arpeggio";
+"upOrder" = "Up";
+"downOrder" = "Down";
+"upDownOrder" = "Up Down";
+"randomOrder" = "Random";
+"noteMode" = "Note Mode";
+"velocity" = "Velocity";
+"mode" = "Mode";
+"snapshots" = "Snapshots";

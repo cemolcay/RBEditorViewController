@@ -30,19 +30,25 @@ class VelocityToolbarModeView: RBToolbarModeView<VelocityToolbarModeProps> {
     super.render()
     guard let data = props.rhythmData else { selectCellAlert(); return }
 
-    globalButton.setTitle("Global", for: .normal)
+    globalButton.setTitle(i18n.global.description, for: .normal)
+    globalButton.setTitleColor(UIColor.toolbarButtonTextColor, for: .normal)
+    globalButton.setTitleColor(UIColor.toolbarButtonSelectedTextColor, for: .selected)
+    globalButton.tintColor = UIColor.toolbarButtonSelectedBackgroundColor
     globalButton.addTarget(self, action: #selector(globalButtonPressed(sender:)), for: .touchUpInside)
 
     velocityLabel.text = "\(data.velocity)"
-
+    velocityLabel.textColor = UIColor.toolbarButtonTextColor
+    velocityLabel.widthAnchor.constraint(equalToConstant: 30).isActive = true
+    
     let slider = UISlider(frame: .zero)
     slider.addTarget(self, action: #selector(velocitySliderDidChange(sender:)), for: .valueChanged)
+    slider.tintColor = UIColor.toolbarButtonTextColor
     slider.minimumValue = 0
     slider.maximumValue = 127
     slider.value = Float(data.velocity)
 
     stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
-    stackView.spacing = 16
+    stackView.spacing = 8
     scrollView.isScrollEnabled = false
     stackView.addArrangedSubview(globalButton)
     stackView.addArrangedSubview(velocityLabel)
@@ -64,7 +70,7 @@ class VelocityToolbarModeView: RBToolbarModeView<VelocityToolbarModeProps> {
 final class VelocityToolbarMode: RBToolbarMode {
   typealias PropType = VelocityToolbarModeProps
   var props = VelocityToolbarModeProps()
-  var toolbarTitle: String = "Edit Velocity"
+  var toolbarTitle: String = i18n.editVelocity.description
 
   var view: RBToolbarModeView<VelocityToolbarModeProps> {
     return VelocityToolbarModeView(props: props)

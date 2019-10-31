@@ -27,6 +27,10 @@
 		53899A882366E1D80005094F /* RBEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A792366E1D80005094F /* RBEditorViewController.swift */; };
 		53899A892366E1D80005094F /* RBData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A7A2366E1D80005094F /* RBData.swift */; };
 		53899A8A2366E1D80005094F /* RBActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A7B2366E1D80005094F /* RBActionView.swift */; };
+		53C3ACF5236B261D0024C980 /* i18n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C3ACF4236B261D0024C980 /* i18n.swift */; };
+		53C3ACFB236B26BD0024C980 /* RBToolbarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C3ACFA236B26BD0024C980 /* RBToolbarButton.swift */; };
+		53C3ACFD236B27150024C980 /* PickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C3ACFC236B27150024C980 /* PickerViewController.swift */; };
+		53D14F09236B29D100A58302 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 53D14F08236B29D100A58302 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +68,10 @@
 		53899A792366E1D80005094F /* RBEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBEditorViewController.swift; sourceTree = "<group>"; };
 		53899A7A2366E1D80005094F /* RBData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBData.swift; sourceTree = "<group>"; };
 		53899A7B2366E1D80005094F /* RBActionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBActionView.swift; sourceTree = "<group>"; };
+		53C3ACF4236B261D0024C980 /* i18n.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = i18n.swift; sourceTree = "<group>"; };
+		53C3ACFA236B26BD0024C980 /* RBToolbarButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RBToolbarButton.swift; path = RBEditorViewController/RBEditor/RBToolbarButton.swift; sourceTree = SOURCE_ROOT; };
+		53C3ACFC236B27150024C980 /* PickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PickerViewController.swift; sourceTree = "<group>"; };
+		53D14F08236B29D100A58302 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +123,8 @@
 			isa = PBXGroup;
 			children = (
 				53868D90233B448400CDB8F4 /* AppDelegate.swift */,
+				53C3ACF4236B261D0024C980 /* i18n.swift */,
+				53C3ACFC236B27150024C980 /* PickerViewController.swift */,
 				53899A772366E1D80005094F /* RBEditor */,
 				53899A6A2366E1D80005094F /* RBScrollView */,
 				53899A6F2366E1D80005094F /* RBToolbarMode */,
@@ -122,6 +132,7 @@
 				53868D97233B448500CDB8F4 /* Assets.xcassets */,
 				53868D99233B448500CDB8F4 /* LaunchScreen.storyboard */,
 				53868D9C233B448500CDB8F4 /* Info.plist */,
+				53D14F08236B29D100A58302 /* Localizable.strings */,
 			);
 			path = RBEditorViewController;
 			sourceTree = "<group>";
@@ -133,6 +144,7 @@
 				53899A6C2366E1D80005094F /* RBScrollViewCell.swift */,
 				53899A6D2366E1D80005094F /* RBPlayheadView.swift */,
 				53899A6E2366E1D80005094F /* RBTapRecordView.swift */,
+				53C3ACFA236B26BD0024C980 /* RBToolbarButton.swift */,
 			);
 			path = RBScrollView;
 			sourceTree = "<group>";
@@ -251,6 +263,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				53868D9B233B448500CDB8F4 /* LaunchScreen.storyboard in Resources */,
+				53D14F09236B29D100A58302 /* Localizable.strings in Resources */,
 				53868D98233B448500CDB8F4 /* Assets.xcassets in Resources */,
 				53868D96233B448400CDB8F4 /* Main.storyboard in Resources */,
 			);
@@ -276,12 +289,15 @@
 				53899A7D2366E1D80005094F /* RBScrollViewCell.swift in Sources */,
 				53899A822366E1D80005094F /* ArpToolbarMode.swift in Sources */,
 				53868D91233B448400CDB8F4 /* AppDelegate.swift in Sources */,
+				53C3ACFD236B27150024C980 /* PickerViewController.swift in Sources */,
+				53C3ACFB236B26BD0024C980 /* RBToolbarButton.swift in Sources */,
 				53899A862366E1D80005094F /* SnapshotToolbarMode.swift in Sources */,
 				53899A832366E1D80005094F /* RatchetToolbarMode.swift in Sources */,
 				53899A872366E1D80005094F /* RBToolbarView.swift in Sources */,
 				53899A882366E1D80005094F /* RBEditorViewController.swift in Sources */,
 				53899A842366E1D80005094F /* RecordToolbarMode.swift in Sources */,
 				53899A8A2366E1D80005094F /* RBActionView.swift in Sources */,
+				53C3ACF5236B261D0024C980 /* i18n.swift in Sources */,
 				53899A7F2366E1D80005094F /* RBTapRecordView.swift in Sources */,
 				53899A852366E1D80005094F /* VelocityToolbarMode.swift in Sources */,
 				53899A812366E1D80005094F /* TransposeToolbarMode.swift in Sources */,

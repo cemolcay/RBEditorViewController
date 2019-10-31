@@ -28,6 +28,7 @@ class RatchetToolbarModeView: RBToolbarModeView<RatchetToolbarModeProps> {
     guard let data = props.rhythmData else { selectCellAlert(); return }
 
     stackView.spacing = 16
+    scrollView.contentInset.left += 8
     RBRatchet.allCases
       .map({ $0.toolbarButton() })
       .forEach({
@@ -50,7 +51,7 @@ class RatchetToolbarModeView: RBToolbarModeView<RatchetToolbarModeProps> {
 final class RatchetToolbarMode: RBToolbarMode {
   typealias PropType = RatchetToolbarModeProps
   var props = RatchetToolbarModeProps()
-  var toolbarTitle: String = "Edit Ratchet"
+  var toolbarTitle: String = i18n.editRatchet.description
 
   var view: RBToolbarModeView<RatchetToolbarModeProps> {
     return RatchetToolbarModeView(props: props)

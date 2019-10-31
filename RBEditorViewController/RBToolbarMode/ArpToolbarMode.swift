@@ -29,6 +29,7 @@ class ArpToolbarModeView: RBToolbarModeView<ArpToolbarModeProps> {
     guard let data = props.rhythmData else { selectCellAlert(); return }
 
     stackView.spacing = 16
+    scrollView.contentInset.left += 8
     RBArp.allCases
       .map({ $0.toolbarButton() })
       .forEach({
@@ -51,7 +52,7 @@ class ArpToolbarModeView: RBToolbarModeView<ArpToolbarModeProps> {
 final class ArpToolbarMode: RBToolbarMode {
   typealias PropType = ArpToolbarModeProps
   var props = ArpToolbarModeProps()
-  var toolbarTitle: String = "Edit Arp"
+  var toolbarTitle: String = i18n.editArp.description
 
   var view: RBToolbarModeView<ArpToolbarModeProps> {
     return ArpToolbarModeView(props: props)

@@ -23,7 +23,7 @@ public class MeasureTextLayer: CATextLayer {
   }
 
   public override func draw(in ctx: CGContext) {
-    let yDiff = (bounds.size.height - ((string as? NSAttributedString)?.size().height ?? fontSize)) - 1
+    let yDiff = (bounds.size.height - ((string as? NSAttributedString)?.size().height ?? fontSize)) - 3
     ctx.saveGState()
     ctx.translateBy(x: 0.0, y: yDiff)
     super.draw(in: ctx)
@@ -42,7 +42,7 @@ public protocol RBScrollViewDelegate: class {
   func rbScrollView(_ scrollView: RBScrollView, didSelect cell: RBScrollViewCell, at index: Int)
   func rbScrollViewDidUnselectCells(_ scrollView: RBScrollView)
   func rbScrollViewDidUpdatePlayhead(_ scrollView: RBScrollView)
-  func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView)
+  func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView, withPanGesture: Bool)
   func rbScrollViewDidMoveCell(_ scrollView: RBScrollView)
   func rbScrollViewDidResizeCell(_ scrollView: RBScrollView)
   func rbScrollViewDidQuantize(_ scrollView: RBScrollView)
@@ -71,7 +71,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   private var measureBackgroundLayer = CALayer()
 
   public var measureLabelTextColor: UIColor = .black
-  public var measureLabelTextSize: CGFloat = 11
+  public var measureLabelTextSize: CGFloat = 13
   public var measureLineColor: UIColor = .black
   public var measureLineSize: CGFloat = 0.5
   public var measureBottomLineColor: UIColor = .black
@@ -79,10 +79,11 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   public var measureBackgroundColor: UIColor = .lightGray
 
   private var zoomGesture = UIPinchGestureRecognizer()
-  public var zoomSpeed: CGFloat = 0.4
+  public var zoomSpeed: CGFloat = 1.0
   public var zoomLevel: Int = 0
   public var minZoomLevel: Int = 0
   public var maxZoomLevel: Int = 2
+  public var isQuantizing: Bool = false
 
   private var cells: [RBScrollViewCell] = []
   private var selectedCellIndex: Int?
@@ -129,6 +130,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   public override func layoutSubviews() {
     super.layoutSubviews()
+
     CATransaction.begin()
     CATransaction.setDisableActions(true)
 
@@ -161,9 +163,9 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       let line = measureLines[i]
       line.frame = CGRect(
         x: currentX,
-        y: measureHeight,
+        y: measureHeight/2,
         width: measureLineSize,
-        height: frame.size.height - measureHeight)
+        height: frame.size.height - (measureHeight/2))
     }
 
     var measureBarWidth: CGFloat = 0
@@ -199,13 +201,13 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     // Playhead
     playheadView.measureHeight = measureHeight
-    playheadView.lineHeight = contentSize.height - measureHeight
+    playheadView.lineHeight = frame.height - measureHeight
     playheadView.measureWidth = measureBarWidth
     bringSubviewToFront(playheadView)
 
     // Rangehead
     rangeheadView.measureHeight = measureHeight
-    rangeheadView.lineHeight = contentSize.height - measureHeight
+    rangeheadView.lineHeight = frame.height - measureHeight
     rangeheadView.measureWidth = measureBarWidth
     bringSubviewToFront(rangeheadView)
 
@@ -233,7 +235,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     let measureLabelIndicies = measureLabels.indices
     let measureLineIndicies = measureLines.indices
-    var currentBar = 0
+    var currentBar = 1
     var currentBeat = 0
     var currentSubbeat = 0
 
@@ -309,6 +311,9 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     cells.forEach({ $0.removeFromSuperview() })
     cells = []
     let count = rbDataSource?.numberOfCells(in: self) ?? 0
+    if let index = selectedCellIndex, index >= count {
+      selectedCellIndex = nil
+    }
 
     for i in 0..<count {
       guard let cell = rbDataSource?.rbScrollView(self, cellAt: i) else { continue }
@@ -380,6 +385,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   }
 
   func quantize(zoomLevel: Int) {
+    isQuantizing = true
     var range: Double = 0
     switch zoomLevel {
     case 0:
@@ -398,9 +404,8 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       rbDelegate?.rbScrollView(self, didUpdate: cells[i], at: i)
     }
 
-    setNeedsLayout()
-    fixOverlaps()
-
+    cells.enumerated().forEach({ fixOverlaps(editingCellIndex: $0.offset) })
+    isQuantizing = false
     rbDelegate?.rbScrollViewDidQuantize(self)
   }
 
@@ -416,9 +421,9 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     }
   }
 
-  func fixOverlaps() {
+  func fixOverlaps(editingCellIndex: Int? = nil) {
     guard cells.count > 0,
-      let editingCellIndex = selectedCellIndex,
+      let editingCellIndex = editingCellIndex ?? selectedCellIndex,
       let editingCell = cells[safe: editingCellIndex]
       else { return }
 
@@ -472,7 +477,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   func snapRangeheadToLastCell() {
     rangeheadView.position = cells.map({ $0.position + $0.duration }).sorted().last ?? 0
-    rbDelegate?.rbScrollViewDidUpdateRangehead(self)
+    rbDelegate?.rbScrollViewDidUpdateRangehead(self, withPanGesture: false)
   }
 
   // MARK: Cell Selection
@@ -490,6 +495,11 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     if let index = selectedCellIndex {
       rbDelegate?.rbScrollView(self, didSelect: cell, at: index)
     }
+  }
+
+  func selectCell(at index: Int) {
+    guard let cell = cells[safe: index] else { return }
+    selectCell(cell)
   }
 
   func unselectCells() {
@@ -564,7 +574,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       overlapState = nil
       rbDelegate?.rbScrollViewDidResizeCell(self)
     }
-    
+
     setNeedsLayout()
   }
 
@@ -572,7 +582,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     if rbScrollViewCell.isSelected {
       unselectCells()
     } else {
-      selectCell(rbScrollViewCell) 
+      selectCell(rbScrollViewCell)
     }
   }
 
@@ -606,7 +616,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       if playheadView == self.playheadView {
         rbDelegate?.rbScrollViewDidUpdatePlayhead(self)
       } else if playheadView == self.rangeheadView {
-        rbDelegate?.rbScrollViewDidUpdateRangehead(self)
+        rbDelegate?.rbScrollViewDidUpdateRangehead(self, withPanGesture: true)
       }
     }
 

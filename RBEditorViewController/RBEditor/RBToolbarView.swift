@@ -66,9 +66,12 @@ class RBToolbarModeView<T: RBToolbarModeProps>: UIView {
 
   func selectCellAlert() {
     let label = UILabel()
-    label.text = "Select a Cell"
+    label.text = i18n.selectCell.description
     label.textAlignment = .center
+    label.textColor = UIColor.toolbarButtonTextColor
+    label.font = UIFont.toolbarButtonFont
     stackView.addArrangedSubview(label)
+    stackView.alignment = .center
   }
 }
 
@@ -76,6 +79,8 @@ class RBToolbarView: UIView {
   let layoutStack = UIStackView()
   let titleLabel = UILabel()
   let contentView = UIView()
+  let borderLayer = CALayer()
+  let borderSize: CGFloat = 0.5
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -88,6 +93,9 @@ class RBToolbarView: UIView {
   }
 
   func commonInit() {
+    layer.addSublayer(borderLayer)
+    borderLayer.backgroundColor = UIColor.toolbarBorderColor.cgColor
+
     addSubview(layoutStack)
     layoutStack.translatesAutoresizingMaskIntoConstraints = false
     layoutStack.leftAnchor.constraint(equalTo: leftAnchor, constant: 8).isActive = true
@@ -95,9 +103,12 @@ class RBToolbarView: UIView {
     layoutStack.topAnchor.constraint(equalTo: topAnchor, constant: 8).isActive = true
     layoutStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8).isActive = true
     layoutStack.axis = .vertical
+    layoutStack.spacing = 8
 
     layoutStack.addArrangedSubview(titleLabel)
-    titleLabel.font = UIFont.systemFont(ofSize: 12)
+    titleLabel.font = UIFont.toolbarTitleFont
+    titleLabel.textColor = UIColor.toolbarTitleColor
+    titleLabel.heightAnchor.constraint(equalToConstant: 15).isActive = true
     layoutStack.addArrangedSubview(contentView)
   }
 
@@ -115,5 +126,14 @@ class RBToolbarView: UIView {
     toolbar.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
     toolbar.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
     toolbar.render()
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    borderLayer.frame = CGRect(
+      x: 0,
+      y: 0,
+      width: frame.size.width,
+      height: borderSize)
   }
 }
