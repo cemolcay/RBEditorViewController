@@ -1,7 +1,9 @@
 RBEditorViewController
 ====
 
-[WIP] RhythmBud's editor UI code. 
+RhythmBud's editor UI code. 
+
+[![alt tag](https://linkmaker.itunes.apple.com/assets/shared/badges/en-us/appstore-lrg.svg)](https://itunes.apple.com/us/app/rhythmbud-auv3-midi-fx/id1484320891?ls=1&mt=8)
 
 ##### Core concepts:
 
@@ -14,6 +16,7 @@ RBEditorViewController
 - Dynamic toolbar rendering
 - Taking snapshots
 - History (undo/redo)
+- Localization (i18n)
 
 ##### Disclaimer:
 
