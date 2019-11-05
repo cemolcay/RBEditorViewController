@@ -159,7 +159,11 @@ public class RBGridView: UIScrollView, RBGridViewCellDelegate, RBPlayheadViewDel
 
     // Check if we should draw measure
     let multiplier = CGFloat(zoomLevel.multiplier(timeSignature: timeSignatureBeatCount))
-    let newMeasureCount = Int(max(ceil(farMostCellPosition * multiplier) + 1, ceil(frame.size.width / measureWidth)))
+    let cellPosition = ceil(farMostCellPosition * multiplier) + 1
+    let rangePosition = CGFloat(ceil(CGFloat(rangeheadView.position) * multiplier) + 1)
+    let availableSpace = ceil(frame.size.width / measureWidth)
+    let newMeasureCount = Int(max(cellPosition, rangePosition, availableSpace))
+    
     if measureCount != newMeasureCount {
       measureCount = newMeasureCount
       drawMeasure()
