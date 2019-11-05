@@ -12,10 +12,6 @@
 		53868D96233B448400CDB8F4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53868D94233B448400CDB8F4 /* Main.storyboard */; };
 		53868D98233B448500CDB8F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53868D97233B448500CDB8F4 /* Assets.xcassets */; };
 		53868D9B233B448500CDB8F4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53868D99233B448500CDB8F4 /* LaunchScreen.storyboard */; };
-		53899A7C2366E1D80005094F /* RBScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6B2366E1D80005094F /* RBScrollView.swift */; };
-		53899A7D2366E1D80005094F /* RBScrollViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6C2366E1D80005094F /* RBScrollViewCell.swift */; };
-		53899A7E2366E1D80005094F /* RBPlayheadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6D2366E1D80005094F /* RBPlayheadView.swift */; };
-		53899A7F2366E1D80005094F /* RBTapRecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A6E2366E1D80005094F /* RBTapRecordView.swift */; };
 		53899A802366E1D80005094F /* RhythmToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A702366E1D80005094F /* RhythmToolbarMode.swift */; };
 		53899A812366E1D80005094F /* TransposeToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A712366E1D80005094F /* TransposeToolbarMode.swift */; };
 		53899A822366E1D80005094F /* ArpToolbarMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53899A722366E1D80005094F /* ArpToolbarMode.swift */; };
@@ -31,6 +27,10 @@
 		53C3ACFB236B26BD0024C980 /* RBToolbarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C3ACFA236B26BD0024C980 /* RBToolbarButton.swift */; };
 		53C3ACFD236B27150024C980 /* PickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C3ACFC236B27150024C980 /* PickerViewController.swift */; };
 		53D14F09236B29D100A58302 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 53D14F08236B29D100A58302 /* Localizable.strings */; };
+		53F09EBD2371973F00D8FB54 /* RBGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F09EB92371973F00D8FB54 /* RBGridView.swift */; };
+		53F09EBE2371973F00D8FB54 /* RBGridViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F09EBA2371973F00D8FB54 /* RBGridViewCell.swift */; };
+		53F09EBF2371973F00D8FB54 /* RBPlayheadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F09EBB2371973F00D8FB54 /* RBPlayheadView.swift */; };
+		53F09EC02371973F00D8FB54 /* RBTapRecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F09EBC2371973F00D8FB54 /* RBTapRecordView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,10 +53,6 @@
 		53868D97233B448500CDB8F4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53868D9A233B448500CDB8F4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		53868D9C233B448500CDB8F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		53899A6B2366E1D80005094F /* RBScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBScrollView.swift; sourceTree = "<group>"; };
-		53899A6C2366E1D80005094F /* RBScrollViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBScrollViewCell.swift; sourceTree = "<group>"; };
-		53899A6D2366E1D80005094F /* RBPlayheadView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBPlayheadView.swift; sourceTree = "<group>"; };
-		53899A6E2366E1D80005094F /* RBTapRecordView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBTapRecordView.swift; sourceTree = "<group>"; };
 		53899A702366E1D80005094F /* RhythmToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RhythmToolbarMode.swift; sourceTree = "<group>"; };
 		53899A712366E1D80005094F /* TransposeToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransposeToolbarMode.swift; sourceTree = "<group>"; };
 		53899A722366E1D80005094F /* ArpToolbarMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArpToolbarMode.swift; sourceTree = "<group>"; };
@@ -72,6 +68,10 @@
 		53C3ACFA236B26BD0024C980 /* RBToolbarButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RBToolbarButton.swift; path = RBEditorViewController/RBEditor/RBToolbarButton.swift; sourceTree = SOURCE_ROOT; };
 		53C3ACFC236B27150024C980 /* PickerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PickerViewController.swift; sourceTree = "<group>"; };
 		53D14F08236B29D100A58302 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
+		53F09EB92371973F00D8FB54 /* RBGridView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBGridView.swift; sourceTree = "<group>"; };
+		53F09EBA2371973F00D8FB54 /* RBGridViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBGridViewCell.swift; sourceTree = "<group>"; };
+		53F09EBB2371973F00D8FB54 /* RBPlayheadView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBPlayheadView.swift; sourceTree = "<group>"; };
+		53F09EBC2371973F00D8FB54 /* RBTapRecordView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBTapRecordView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,7 +126,7 @@
 				53C3ACFC236B27150024C980 /* PickerViewController.swift */,
 				53C3ACF4236B261D0024C980 /* i18n.swift */,
 				53899A772366E1D80005094F /* RBEditor */,
-				53899A6A2366E1D80005094F /* RBScrollView */,
+				53F09EB82371973F00D8FB54 /* RBGridView */,
 				53899A6F2366E1D80005094F /* RBToolbarMode */,
 				53868D94233B448400CDB8F4 /* Main.storyboard */,
 				53868D97233B448500CDB8F4 /* Assets.xcassets */,
@@ -135,17 +135,6 @@
 				53D14F08236B29D100A58302 /* Localizable.strings */,
 			);
 			path = RBEditorViewController;
-			sourceTree = "<group>";
-		};
-		53899A6A2366E1D80005094F /* RBScrollView */ = {
-			isa = PBXGroup;
-			children = (
-				53899A6B2366E1D80005094F /* RBScrollView.swift */,
-				53899A6C2366E1D80005094F /* RBScrollViewCell.swift */,
-				53899A6D2366E1D80005094F /* RBPlayheadView.swift */,
-				53899A6E2366E1D80005094F /* RBTapRecordView.swift */,
-			);
-			path = RBScrollView;
 			sourceTree = "<group>";
 		};
 		53899A6F2366E1D80005094F /* RBToolbarMode */ = {
@@ -172,6 +161,17 @@
 				53C3ACFA236B26BD0024C980 /* RBToolbarButton.swift */,
 			);
 			path = RBEditor;
+			sourceTree = "<group>";
+		};
+		53F09EB82371973F00D8FB54 /* RBGridView */ = {
+			isa = PBXGroup;
+			children = (
+				53F09EB92371973F00D8FB54 /* RBGridView.swift */,
+				53F09EBA2371973F00D8FB54 /* RBGridViewCell.swift */,
+				53F09EBB2371973F00D8FB54 /* RBPlayheadView.swift */,
+				53F09EBC2371973F00D8FB54 /* RBTapRecordView.swift */,
+			);
+			path = RBGridView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -284,9 +284,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				53F09EBD2371973F00D8FB54 /* RBGridView.swift in Sources */,
 				53899A892366E1D80005094F /* RBData.swift in Sources */,
+				53F09EBF2371973F00D8FB54 /* RBPlayheadView.swift in Sources */,
+				53F09EC02371973F00D8FB54 /* RBTapRecordView.swift in Sources */,
 				53899A802366E1D80005094F /* RhythmToolbarMode.swift in Sources */,
-				53899A7D2366E1D80005094F /* RBScrollViewCell.swift in Sources */,
 				53899A822366E1D80005094F /* ArpToolbarMode.swift in Sources */,
 				53868D91233B448400CDB8F4 /* AppDelegate.swift in Sources */,
 				53C3ACFD236B27150024C980 /* PickerViewController.swift in Sources */,
@@ -298,11 +300,9 @@
 				53899A842366E1D80005094F /* RecordToolbarMode.swift in Sources */,
 				53899A8A2366E1D80005094F /* RBActionView.swift in Sources */,
 				53C3ACF5236B261D0024C980 /* i18n.swift in Sources */,
-				53899A7F2366E1D80005094F /* RBTapRecordView.swift in Sources */,
 				53899A852366E1D80005094F /* VelocityToolbarMode.swift in Sources */,
+				53F09EBE2371973F00D8FB54 /* RBGridViewCell.swift in Sources */,
 				53899A812366E1D80005094F /* TransposeToolbarMode.swift in Sources */,
-				53899A7E2366E1D80005094F /* RBPlayheadView.swift in Sources */,
-				53899A7C2366E1D80005094F /* RBScrollView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

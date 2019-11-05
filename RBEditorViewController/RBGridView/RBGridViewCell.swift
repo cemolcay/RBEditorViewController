@@ -8,15 +8,15 @@
 import UIKit
 
 /// Delegate functions to inform about editing or deleting cell.
-public protocol RBScrollViewCellDelegate: class {
-  func rbScrollViewCellDidMove(_ rbScrollViewCell: RBScrollViewCell, pan: UIPanGestureRecognizer)
-  func rbScrollViewCellDidResize(_ rbScrollViewCell: RBScrollViewCell, pan: UIPanGestureRecognizer)
-  func rbScrollViewCellDidTap(_ rbScrollViewCell: RBScrollViewCell)
-  func rbScrollViewCellDidDelete(_ rbScrollViewCell: RBScrollViewCell)
+public protocol RBGridViewCellDelegate: class {
+  func gridViewCellDidMove(_ gridViewCell: RBGridViewCell, pan: UIPanGestureRecognizer)
+  func gridViewCellDidResize(_ gridViewCell: RBGridViewCell, pan: UIPanGestureRecognizer)
+  func gridViewCellDidTap(_ gridViewCell: RBGridViewCell)
+  func gridViewCellDidDelete(_ gridViewCell: RBGridViewCell)
 }
 
 /// Defines a custom menu item for the `MIDITimeTableCellView` to show when you long press it.
-public struct RBScrollViewCellCustomMenuItem {
+public struct RBGridViewCellCustomMenuItem {
   /// Title of the custom menu item.
   public private(set) var title: String
   /// Action handler of the custom menu item.
@@ -39,15 +39,15 @@ public struct RBScrollViewCellCustomMenuItem {
 }
 
 /// Base cell view that shows on `MIDITimeTableView`. Has abilitiy to move, resize and delete.
-open class RBScrollViewCell: UIView {
+open class RBGridViewCell: UIView {
   /// View that holds the pan gesture on right most side in the view to use in resizing cell.
   private let resizeView = UIView()
   /// Inset from the rightmost side on the cell to capture resize gesture.
   open var resizePanThreshold: CGFloat = 20
   /// Delegate that informs about editing cell.
-  open weak var delegate: RBScrollViewCellDelegate?
+  open weak var delegate: RBGridViewCellDelegate?
   /// Custom items other than delete, when you long press cell.
-  open var customMenuItems = [RBScrollViewCellCustomMenuItem]()
+  open var customMenuItems = [RBGridViewCellCustomMenuItem]()
   /// When cell's position or duration editing, is selected.
   open var isSelected: Bool = false { didSet { setNeedsLayout() }}
 
@@ -107,15 +107,15 @@ open class RBScrollViewCell: UIView {
   // MARK: Gestures
 
   @objc public func didTap(tap: UITapGestureRecognizer) {
-    delegate?.rbScrollViewCellDidTap(self)
+    delegate?.gridViewCellDidTap(self)
   }
 
   @objc public func didMove(pan: UIPanGestureRecognizer) {
-    delegate?.rbScrollViewCellDidMove(self, pan: pan)
+    delegate?.gridViewCellDidMove(self, pan: pan)
   }
 
   @objc public func didResize(pan: UIPanGestureRecognizer) {
-    delegate?.rbScrollViewCellDidResize(self, pan: pan)
+    delegate?.gridViewCellDidResize(self, pan: pan)
   }
 
   @objc public func didLongPress(longPress: UILongPressGestureRecognizer) {
@@ -135,7 +135,7 @@ open class RBScrollViewCell: UIView {
   }
 
   @objc public func didPressDeleteButton() {
-    delegate?.rbScrollViewCellDidDelete(self)
+    delegate?.gridViewCellDidDelete(self)
   }
 
   @objc public func menuControllerWillHideNotification() {

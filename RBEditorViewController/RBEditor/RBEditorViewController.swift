@@ -8,7 +8,7 @@
 
 import UIKit
 
-class RBCell: RBScrollViewCell {
+class RBCell: RBGridViewCell {
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -34,11 +34,11 @@ class RBCell: RBScrollViewCell {
   }
 }
 
-class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollViewDataSource, RBScrollViewDelegate {
+class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridViewDataSource, RBGridViewDelegate {
   let contentView = UIView(frame: .zero)
   let actionView = RBActionView(frame: .zero)
   let toolbarView = RBToolbarView(frame: .zero)
-  let gridView = RBScrollView(frame: .zero)
+  let gridView = RBGridView(frame: .zero)
   let actionViewWidth: CGFloat = 100
   let toolbarHeight: CGFloat = 100
 
@@ -243,12 +243,12 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
 
   // MARK: RBScrollViewDataSource
 
-  func numberOfCells(in rbScrollView: RBScrollView) -> Int {
+  func numberOfCells(in gridView: RBGridView) -> Int {
     return projectData?.rhythm.count ?? 0
   }
 
-  func rbScrollView(_ rbScrollView: RBScrollView, cellAt index: Int) -> RBScrollViewCell {
-    guard let cellData = projectData?.rhythm[safe: index] else { return RBScrollViewCell(frame: .zero) }
+  func rbScrollView(_ gridView: RBGridView, cellAt index: Int) -> RBGridViewCell {
+    guard let cellData = projectData?.rhythm[safe: index] else { return RBGridViewCell(frame: .zero) }
     let cell = RBCell(frame: .zero)
     cell.position = cellData.position
     cell.duration = cellData.duration
@@ -257,33 +257,33 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
 
   // MARK: RBScrollViewDelegate
 
-  func rbScrollView(_ scrollView: RBScrollView, didUpdate cell: RBScrollViewCell, at index: Int) {
+  func gridView(_ gridView: RBGridView, didUpdate cell: RBGridViewCell, at index: Int) {
     projectData?.rhythm[safe: index]?.position = cell.position
     projectData?.rhythm[safe: index]?.duration = cell.duration
   }
 
-  func rbScrollView(_ scrollView: RBScrollView, didDelete cell: RBScrollViewCell, at index: Int) {
+  func gridView(_ gridView: RBGridView, didDelete cell: RBGridViewCell, at index: Int) {
     guard projectData?.rhythm.indices.contains(index) == true else { return }
     projectData?.rhythm.remove(at: index)
     projectDataDidChange(shouldReload: !gridView.isQuantizing)
   }
 
-  func rbScrollView(_ scrollView: RBScrollView, didSelect cell: RBScrollViewCell, at index: Int) {
+  func gridView(_ gridView: RBGridView, didSelect cell: RBGridViewCell, at index: Int) {
     selectedRhythmData = projectData?.rhythm[safe: index]
     updateToolbar()
   }
 
-  func rbScrollViewDidUnselectCells(_ scrollView: RBScrollView) {
+  func gridViewDidUnselectCells(_ gridView: RBGridView) {
     selectedRhythmData = nil
     updateToolbar()
   }
 
-  func rbScrollViewDidUpdatePlayhead(_ scrollView: RBScrollView) {
+  func gridViewDidUpdatePlayhead(_ gridView: RBGridView) {
     return
   }
 
-  func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView, withPanGesture: Bool) {
-    projectData?.duration = scrollView.rangeheadView.position
+  func gridViewDidUpdateRangehead(_ gridView: RBGridView, withPanGesture: Bool) {
+    projectData?.duration = gridView.rangeheadView.position
     guard withPanGesture else { return }
     history.push()
     if mode == .record {
@@ -291,17 +291,17 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBScrollVi
     }
   }
 
-  func rbScrollViewDidMoveCell(_ scrollView: RBScrollView) {
+  func gridViewDidMoveCell(_ gridView: RBGridView) {
     gridView.snapRangeheadToLastCell()
     projectDataDidChange(shouldReload: false)
   }
 
-  func rbScrollViewDidResizeCell(_ scrollView: RBScrollView) {
+  func gridViewDidResizeCell(_ gridView: RBGridView) {
     gridView.snapRangeheadToLastCell()
     projectDataDidChange(shouldReload: false)
   }
 
-  func rbScrollViewDidQuantize(_ scrollView: RBScrollView) {
+  func gridViewDidQuantize(_ gridView: RBGridView) {
     projectDataDidChange()
   }
 

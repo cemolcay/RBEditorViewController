@@ -31,35 +31,59 @@ public class MeasureTextLayer: CATextLayer {
   }
 }
 
-public protocol RBScrollViewDataSource: class {
-  func numberOfCells(in rbScrollView: RBScrollView) -> Int
-  func rbScrollView(_ rbScrollView: RBScrollView, cellAt index: Int) -> RBScrollViewCell
+public protocol RBGridViewDataSource: class {
+  func numberOfCells(in gridView: RBGridView) -> Int
+  func rbScrollView(_ gridView: RBGridView, cellAt index: Int) -> RBGridViewCell
 }
 
-public protocol RBScrollViewDelegate: class {
-  func rbScrollView(_ scrollView: RBScrollView, didUpdate cell: RBScrollViewCell, at index: Int)
-  func rbScrollView(_ scrollView: RBScrollView, didDelete cell: RBScrollViewCell, at index: Int)
-  func rbScrollView(_ scrollView: RBScrollView, didSelect cell: RBScrollViewCell, at index: Int)
-  func rbScrollViewDidUnselectCells(_ scrollView: RBScrollView)
-  func rbScrollViewDidUpdatePlayhead(_ scrollView: RBScrollView)
-  func rbScrollViewDidUpdateRangehead(_ scrollView: RBScrollView, withPanGesture: Bool)
-  func rbScrollViewDidMoveCell(_ scrollView: RBScrollView)
-  func rbScrollViewDidResizeCell(_ scrollView: RBScrollView)
-  func rbScrollViewDidQuantize(_ scrollView: RBScrollView)
+public protocol RBGridViewDelegate: class {
+  func gridView(_ gridView: RBGridView, didUpdate cell: RBGridViewCell, at index: Int)
+  func gridView(_ gridView: RBGridView, didDelete cell: RBGridViewCell, at index: Int)
+  func gridView(_ gridView: RBGridView, didSelect cell: RBGridViewCell, at index: Int)
+  func gridViewDidUnselectCells(_ gridView: RBGridView)
+  func gridViewDidUpdatePlayhead(_ gridView: RBGridView)
+  func gridViewDidUpdateRangehead(_ gridView: RBGridView, withPanGesture: Bool)
+  func gridViewDidMoveCell(_ gridView: RBGridView)
+  func gridViewDidResizeCell(_ gridView: RBGridView)
+  func gridViewDidQuantize(_ gridView: RBGridView)
 }
 
-enum RBOverlapState {
+public enum RBOverlapState {
   case resize
   case moveLeft
   case moveRight
 }
 
-public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadViewDelegate {
-  public var measureBarCount: Int = 4
-  public var measureCount: Int = 4
+public enum RBZoomLevel: Int {
+  case bar
+  case beat
+  case subbeat
+
+  var zoomIn: RBZoomLevel? {
+    return RBZoomLevel(rawValue: rawValue + 1)
+  }
+
+  var zoomOut: RBZoomLevel? {
+    return RBZoomLevel(rawValue: rawValue - 1)
+  }
+
+  func multiplier(timeSignature beats: Int) -> Int {
+    switch self {
+    case .bar:
+      return 1
+    case .beat:
+      return beats
+    case .subbeat:
+      return beats * 4
+    }
+  }
+}
+
+public class RBGridView: UIScrollView, RBGridViewCellDelegate, RBPlayheadViewDelegate {
+  public var measureCount: Int = 0
   public var measureWidth: CGFloat = 200
-  public var minMeasureWidth: CGFloat = 100
   public var maxMeasureWidth: CGFloat = 300
+  public var minMeasureWidth: CGFloat = 100
   public var measureHeight: CGFloat = 24
   public var cellVerticalPadding: CGFloat = 8
   public var timeSignatureBeatCount: Int = 4
@@ -80,21 +104,20 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   private var zoomGesture = UIPinchGestureRecognizer()
   public var zoomSpeed: CGFloat = 1.0
-  public var zoomLevel: Int = 0
-  public var minZoomLevel: Int = 0
-  public var maxZoomLevel: Int = 2
+  public var zoomLevel: RBZoomLevel = .bar
   public var isQuantizing: Bool = false
 
-  private var cells: [RBScrollViewCell] = []
+  private var cells: [RBGridViewCell] = []
   private var selectedCellIndex: Int?
   private var movingCellStartPosition: Double?
   private var overlapState: RBOverlapState?
+  private var farMostCellPosition: CGFloat = 0
 
   public var playheadView = RBPlayheadView(frame: .zero)
   public var rangeheadView = RBPlayheadView(frame: .zero)
 
-  public weak var rbDataSource: RBScrollViewDataSource?
-  public weak var rbDelegate: RBScrollViewDelegate?
+  public weak var rbDataSource: RBGridViewDataSource?
+  public weak var rbDelegate: RBGridViewDelegate?
 
   // MARK: Init
 
@@ -134,21 +157,22 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     CATransaction.begin()
     CATransaction.setDisableActions(true)
 
-    // Check if content size need to refresh
-    let contentWidth = CGFloat(measureCount) * measureWidth
-    if contentWidth < frame.size.width {
-      updateMeasure()
+    // Check if we should draw measure
+    let multiplier = CGFloat(zoomLevel.multiplier(timeSignature: timeSignatureBeatCount))
+    let newMeasureCount = Int(max(ceil(farMostCellPosition * multiplier) + 1, ceil(frame.size.width / measureWidth)))
+    if measureCount != newMeasureCount {
+      measureCount = newMeasureCount
+      drawMeasure()
     }
 
-    // Draw measure background
-    measureBackgroundLayer.frame = CGRect(x: 0, y: 0, width: contentSize.width, height: measureHeight)
-    measureBackgroundLayer.backgroundColor = measureBackgroundColor.cgColor
-    measureBottomLine.frame = CGRect(x: 0, y: measureHeight - measureBottomLineSize, width: contentSize.width, height: measureBottomLineSize)
-    measureBottomLine.backgroundColor = measureBottomLineColor.cgColor
+    // Update content size
+    contentSize.width = CGFloat(measureCount) * measureWidth
 
-    // Draw measure lines
-    guard measureLines.count == measureCount + 1, measureLabels.count == measureCount + 1
-      else { updateMeasure(); setNeedsLayout(); return }
+    // Draw measure background
+    measureBackgroundLayer.frame = CGRect(x: 0, y: 0, width: frame.size.width + contentOffset.x, height: measureHeight)
+    measureBackgroundLayer.backgroundColor = measureBackgroundColor.cgColor
+    measureBottomLine.frame = CGRect(x: 0, y: measureHeight - measureBottomLineSize, width: frame.size.width + contentOffset.x, height: measureBottomLineSize)
+    measureBottomLine.backgroundColor = measureBottomLineColor.cgColor
 
     for i in 0..<measureCount + 1 {
       let currentX = CGFloat(i) * measureWidth
@@ -168,20 +192,10 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
         height: frame.size.height - (measureHeight/2))
     }
 
-    var measureBarWidth: CGFloat = 0
-    switch zoomLevel {
-    case 0:
-      measureBarWidth = measureWidth
-    case 1:
-      measureBarWidth = measureWidth * CGFloat(timeSignatureBeatCount)
-    default:
-      measureBarWidth = measureWidth * CGFloat(timeSignatureBeatCount) * 4
-    }
-
     // Draw cells
     for cell in cells {
-      let position = CGFloat(cell.position) * measureBarWidth
-      let duration = CGFloat(cell.duration) * measureBarWidth
+      let position = CGFloat(cell.position) * measureWidth * multiplier
+      let duration = CGFloat(cell.duration) * measureWidth * multiplier
       let height = frame.size.height - measureHeight - (cellVerticalPadding * 2)
       cell.frame = CGRect(
         x: position,
@@ -190,79 +204,52 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
         height: height)
     }
 
-    var lastPosition: Double = 0
-    if let cell = cells.last {
-      lastPosition = cell.position + cell.duration
-    }
-
-    if Int(ceil(lastPosition)) > measureBarCount {
-      updateMeasure()
-    }
-
     // Playhead
     playheadView.measureHeight = measureHeight
     playheadView.lineHeight = frame.height - measureHeight
-    playheadView.measureWidth = measureBarWidth
+    playheadView.measureWidth = measureWidth * multiplier
     bringSubviewToFront(playheadView)
 
     // Rangehead
     rangeheadView.measureHeight = measureHeight
     rangeheadView.lineHeight = frame.height - measureHeight
-    rangeheadView.measureWidth = measureBarWidth
+    rangeheadView.measureWidth = measureWidth * multiplier
     bringSubviewToFront(rangeheadView)
 
     CATransaction.commit()
   }
 
-  public func updateMeasure() {
-    // Update bar count
-    let minBarCountForScreen = Int(ceil(frame.size.width / measureWidth))
-    let minBarCountForCells = Int(farMostCellPosition())
-    measureBarCount = max(measureBarCount, max(minBarCountForScreen, minBarCountForCells))
-
-    // Update measure count
-    switch zoomLevel {
-    case 0:
-      measureCount = measureBarCount
-    case 1:
-      measureCount = measureBarCount * timeSignatureBeatCount
-    default:
-      measureCount = measureBarCount * timeSignatureBeatCount * 4
-    }
-
-    // Update content size
-    contentSize.width = CGFloat(measureCount) * measureWidth
-
+  public func drawMeasure() {
     let measureLabelIndicies = measureLabels.indices
     let measureLineIndicies = measureLines.indices
     var currentBar = 1
-    var currentBeat = 0
-    var currentSubbeat = 0
+    var currentBeat = 1
+    var currentSubbeat = 1
 
     // Update measures, add new ones if nessessary.
     for i in 0..<measureCount + 1 {
       // Determine measure Text
       var measureText = ""
       switch zoomLevel {
-      case 0:
+      case .bar:
         measureText = "\(currentBar)"
         currentBar += 1
-      case 1:
+      case .beat:
         measureText = "\(currentBar).\(currentBeat)"
         currentBeat += 1
-        if currentBeat >= timeSignatureBeatCount {
+        if currentBeat > timeSignatureBeatCount {
           currentBar += 1
-          currentBeat = 0
+          currentBeat = 1
         }
-      default:
+      case .subbeat:
         measureText = "\(currentBar).\(currentBeat).\(currentSubbeat)"
         currentSubbeat += 1
-        if currentSubbeat >= 4 {
-          currentSubbeat = 0
+        if currentSubbeat > 4 {
+          currentSubbeat = 1
           currentBeat += 1
-          if currentBeat >= timeSignatureBeatCount {
+          if currentBeat > timeSignatureBeatCount {
             currentBar += 1
-            currentBeat = 0
+            currentBeat = 1
           }
         }
       }
@@ -315,12 +302,18 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       selectedCellIndex = nil
     }
 
+    farMostCellPosition = 0
     for i in 0..<count {
       guard let cell = rbDataSource?.rbScrollView(self, cellAt: i) else { continue }
       cell.isSelected = i == selectedCellIndex
       cell.delegate = self
       addSubview(cell)
       cells.append(cell)
+      // Calculate far most position
+      let rightPosition = CGFloat(cell.position + cell.duration)
+      if rightPosition > farMostCellPosition {
+        farMostCellPosition = rightPosition
+      }
     }
   }
 
@@ -339,20 +332,14 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       pinch.scale = 1
 
       // Get in new zoom level.
-      let oldZoomLevel = zoomLevel
-      if measureWidth >= maxMeasureWidth, zoomLevel < maxZoomLevel {
-        zoomLevel += 1
+      if measureWidth >= maxMeasureWidth, let zoomIn = zoomLevel.zoomIn {
+        zoomLevel = zoomIn
         minMeasureWidth = maxMeasureWidth / CGFloat(timeSignatureBeatCount)
         measureWidth = minMeasureWidth
-      } else if measureWidth <= minMeasureWidth, zoomLevel > 0 {
-        zoomLevel -= 1
+      } else if measureWidth <= minMeasureWidth, let zoomOut = zoomLevel.zoomOut {
+        zoomLevel = zoomOut
         maxMeasureWidth = minMeasureWidth * CGFloat(timeSignatureBeatCount)
         measureWidth = maxMeasureWidth
-      }
-
-      // Zoom
-      if oldZoomLevel != zoomLevel {
-        updateMeasure()
       }
 
       setNeedsLayout()
@@ -363,25 +350,9 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   // MARK: Utils
 
-  func farMostCellPosition() -> Double {
-    if let last = cells.map({ ceil($0.position + $0.duration) }).sorted().last {
-      return last + 1
-    }
-    return 0
-  }
-
   func durationForTranslation(_ translation: CGFloat) -> Double {
-    var measureBarWidth: CGFloat = 0
-    switch zoomLevel {
-    case 0:
-      measureBarWidth = measureWidth
-    case 1:
-      measureBarWidth = measureWidth * CGFloat(timeSignatureBeatCount)
-    default:
-      measureBarWidth = measureWidth * CGFloat(timeSignatureBeatCount) * 4
-    }
-
-    return Double(translation / measureBarWidth)
+    let multiplier = zoomLevel.multiplier(timeSignature: timeSignatureBeatCount)
+    return Double(translation / (measureWidth * CGFloat(multiplier)))
   }
 
   func quantize(zoomLevel: Int) {
@@ -401,15 +372,15 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     for i in 0..<cells.count {
       let factor = Int(round(cells[i].position / range))
       cells[i].position = Double(factor) * range
-      rbDelegate?.rbScrollView(self, didUpdate: cells[i], at: i)
+      rbDelegate?.gridView(self, didUpdate: cells[i], at: i)
     }
 
     cells.enumerated().forEach({ fixOverlaps(editingCellIndex: $0.offset) })
     isQuantizing = false
-    rbDelegate?.rbScrollViewDidQuantize(self)
+    rbDelegate?.gridViewDidQuantize(self)
   }
 
-  func intersects(lhs: RBScrollViewCell, rhs: RBScrollViewCell) -> Bool {
+  func intersects(lhs: RBGridViewCell, rhs: RBGridViewCell) -> Bool {
     let lhsEnd = lhs.position + lhs.duration
     let rhsEnd = rhs.position + rhs.duration
     if lhs.position < rhs.position {
@@ -438,7 +409,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
         // Delete overlapped cell
         cells.remove(at: overlappingCellIndex)
         overlappingCell.removeFromSuperview()
-        rbDelegate?.rbScrollView(self, didDelete: overlappingCell, at: overlappingCellIndex)
+        rbDelegate?.gridView(self, didDelete: overlappingCell, at: overlappingCellIndex)
         continue
       }
 
@@ -455,12 +426,12 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
           let positionDiff = overlappingCell.position - oldPosition
           overlappingCell.duration = overlappingCell.duration - positionDiff
           // Inform delegate
-          rbDelegate?.rbScrollView(self, didUpdate: overlappingCell, at: overlappingCellIndex)
+          rbDelegate?.gridView(self, didUpdate: overlappingCell, at: overlappingCellIndex)
         }
       case .moveLeft:
         if overlappingCell.position + overlappingCell.duration > editingCell.position {
           overlappingCell.duration = editingCell.position - overlappingCell.position
-          rbDelegate?.rbScrollView(self, didUpdate: overlappingCell, at: overlappingCellIndex)
+          rbDelegate?.gridView(self, didUpdate: overlappingCell, at: overlappingCellIndex)
         }
       }
 
@@ -468,7 +439,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       if overlappingCell.duration <= 0 {
         cells.remove(at: overlappingCellIndex)
         overlappingCell.removeFromSuperview()
-        rbDelegate?.rbScrollView(self, didDelete: overlappingCell, at: overlappingCellIndex)
+        rbDelegate?.gridView(self, didDelete: overlappingCell, at: overlappingCellIndex)
       }
     }
 
@@ -477,12 +448,16 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
   func snapRangeheadToLastCell() {
     rangeheadView.position = cells.map({ $0.position + $0.duration }).sorted().last ?? 0
-    rbDelegate?.rbScrollViewDidUpdateRangehead(self, withPanGesture: false)
+    rbDelegate?.gridViewDidUpdateRangehead(self, withPanGesture: false)
+  }
+
+  func calculateFarMostCellPosition() {
+    farMostCellPosition = cells.map({ ceil(CGFloat($0.position + $0.duration)) }).sorted().last ?? 0
   }
 
   // MARK: Cell Selection
 
-  func selectCell(_ cell: RBScrollViewCell) {
+  func selectCell(_ cell: RBGridViewCell) {
     selectedCellIndex = nil
     for i in 0..<cells.count {
       cells[i].isSelected = false
@@ -493,7 +468,7 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
     }
 
     if let index = selectedCellIndex {
-      rbDelegate?.rbScrollView(self, didSelect: cell, at: index)
+      rbDelegate?.gridView(self, didSelect: cell, at: index)
     }
   }
 
@@ -505,34 +480,33 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
   func unselectCells() {
     selectedCellIndex = nil
     cells.forEach({ $0.isSelected = false })
-    rbDelegate?.rbScrollViewDidUnselectCells(self)
+    rbDelegate?.gridViewDidUnselectCells(self)
   }
 
-  func getSelectedCell() -> RBScrollViewCell? {
+  func getSelectedCell() -> RBGridViewCell? {
     return cells.first(where: { $0.isSelected })
   }
 
   // MARK: RBCellDelegate
 
-  public func rbScrollViewCellDidMove(_ rbScrollViewCell: RBScrollViewCell, pan: UIPanGestureRecognizer) {
+  public func gridViewCellDidMove(_ gridViewCell: RBGridViewCell, pan: UIPanGestureRecognizer) {
     let translation = pan.translation(in: self)
-    bringSubviewToFront(rbScrollViewCell)
+    bringSubviewToFront(gridViewCell)
 
     if pan.state == .began {
-      selectCell(rbScrollViewCell)
-      movingCellStartPosition = rbScrollViewCell.position
+      selectCell(gridViewCell)
+      movingCellStartPosition = gridViewCell.position
     }
 
-    guard rbScrollViewCell.frame.maxX < contentSize.width,
-      rbScrollViewCell.frame.minX >= 0,
-      let index = cells.firstIndex(of: rbScrollViewCell)
+    guard gridViewCell.frame.minX >= 0,
+      let index = cells.firstIndex(of: gridViewCell)
       else { return }
 
     panChangeState: if pan.state == .changed {
       cells[index].position += durationForTranslation(translation.x)
       if cells[index].position < 0 { cells[index].position = 0 }
       pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
-      rbDelegate?.rbScrollView(self, didUpdate: rbScrollViewCell, at: index)
+      rbDelegate?.gridView(self, didUpdate: gridViewCell, at: index)
 
       guard let startPosition = movingCellStartPosition else { break panChangeState }
       overlapState = cells[index].position > startPosition ? .moveRight : .moveLeft
@@ -542,60 +516,61 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
       fixOverlaps()
       overlapState = nil
       movingCellStartPosition = nil
-      rbDelegate?.rbScrollViewDidMoveCell(self)
+      calculateFarMostCellPosition()
+      rbDelegate?.gridViewDidMoveCell(self)
     }
 
     setNeedsLayout()
   }
 
-  public func rbScrollViewCellDidResize(_ rbScrollViewCell: RBScrollViewCell, pan: UIPanGestureRecognizer) {
+  public func gridViewCellDidResize(_ gridViewCell: RBGridViewCell, pan: UIPanGestureRecognizer) {
     let translation = pan.translation(in: self)
-    bringSubviewToFront(rbScrollViewCell)
+    bringSubviewToFront(gridViewCell)
 
     if pan.state == .began {
-      selectCell(rbScrollViewCell)
+      selectCell(gridViewCell)
       overlapState = .resize
     }
 
-    guard rbScrollViewCell.frame.maxX < contentSize.width,
-      rbScrollViewCell.frame.minX >= 0,
-      let index = cells.firstIndex(of: rbScrollViewCell)
+    guard gridViewCell.frame.minX >= 0,
+      let index = cells.firstIndex(of: gridViewCell)
       else { return }
 
     if pan.state == .changed {
       cells[index].duration += durationForTranslation(translation.x)
       pan.setTranslation(CGPoint(x: 0, y: translation.y), in: self)
 
-      rbDelegate?.rbScrollView(self, didUpdate: rbScrollViewCell, at: index)
+      rbDelegate?.gridView(self, didUpdate: gridViewCell, at: index)
     }
 
     if pan.state == .ended {
       fixOverlaps()
       overlapState = nil
-      rbDelegate?.rbScrollViewDidResizeCell(self)
+      calculateFarMostCellPosition()
+      rbDelegate?.gridViewDidResizeCell(self)
     }
 
     setNeedsLayout()
   }
 
-  public func rbScrollViewCellDidTap(_ rbScrollViewCell: RBScrollViewCell) {
-    if rbScrollViewCell.isSelected {
+  public func gridViewCellDidTap(_ gridViewCell: RBGridViewCell) {
+    if gridViewCell.isSelected {
       unselectCells()
     } else {
-      selectCell(rbScrollViewCell)
+      selectCell(gridViewCell)
     }
   }
 
-  public func rbScrollViewCellDidDelete(_ rbScrollViewCell: RBScrollViewCell) {
-    guard let index = cells.firstIndex(of: rbScrollViewCell) else { return }
+  public func gridViewCellDidDelete(_ gridViewCell: RBGridViewCell) {
+    guard let index = cells.firstIndex(of: gridViewCell) else { return }
 
-    if rbScrollViewCell.isSelected {
+    if gridViewCell.isSelected {
       unselectCells()
     }
 
     cells[index].removeFromSuperview()
     cells.remove(at: index)
-    rbDelegate?.rbScrollView(self, didDelete: rbScrollViewCell, at: index)
+    rbDelegate?.gridView(self, didDelete: gridViewCell, at: index)
   }
 
   // MARK: RBPlayheadViewDelegate
@@ -614,9 +589,9 @@ public class RBScrollView: UIScrollView, RBScrollViewCellDelegate, RBPlayheadVie
 
     if panGestureRecognizer.state == .ended {
       if playheadView == self.playheadView {
-        rbDelegate?.rbScrollViewDidUpdatePlayhead(self)
+        rbDelegate?.gridViewDidUpdatePlayhead(self)
       } else if playheadView == self.rangeheadView {
-        rbDelegate?.rbScrollViewDidUpdateRangehead(self, withPanGesture: true)
+        rbDelegate?.gridViewDidUpdateRangehead(self, withPanGesture: true)
       }
     }
 
