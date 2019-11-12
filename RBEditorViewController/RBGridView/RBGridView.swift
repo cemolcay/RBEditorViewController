@@ -25,7 +25,7 @@ public class MeasureTextLayer: CATextLayer {
   public override func draw(in ctx: CGContext) {
     let yDiff = (bounds.size.height - ((string as? NSAttributedString)?.size().height ?? fontSize)) - 3
     ctx.saveGState()
-    ctx.translateBy(x: 0.0, y: yDiff)
+    ctx.translateBy(x: 3.0, y: yDiff)
     super.draw(in: ctx)
     ctx.restoreGState()
   }
@@ -81,8 +81,8 @@ public enum RBZoomLevel: Int {
 
 public class RBGridView: UIScrollView, RBGridViewCellDelegate, RBPlayheadViewDelegate {
   public var measureCount: Int = 0
-  public var measureWidth: CGFloat = 200
-  public var maxMeasureWidth: CGFloat = 300
+  public var measureWidth: CGFloat = 100
+  public var maxMeasureWidth: CGFloat = 200
   public var minMeasureWidth: CGFloat = 100
   public var measureHeight: CGFloat = 24
   public var cellVerticalPadding: CGFloat = 8
@@ -163,7 +163,7 @@ public class RBGridView: UIScrollView, RBGridViewCellDelegate, RBPlayheadViewDel
     let rangePosition = CGFloat(ceil(CGFloat(rangeheadView.position) * multiplier) + 1)
     let availableSpace = ceil(frame.size.width / measureWidth)
     let newMeasureCount = Int(max(cellPosition, rangePosition, availableSpace))
-    
+
     if measureCount != newMeasureCount {
       measureCount = newMeasureCount
       drawMeasure()
@@ -451,7 +451,7 @@ public class RBGridView: UIScrollView, RBGridViewCellDelegate, RBPlayheadViewDel
   }
 
   func snapRangeheadToLastCell() {
-    rangeheadView.position = cells.map({ $0.position + $0.duration }).sorted().last ?? 0
+    rangeheadView.position =  cells.map({ $0.position + $0.duration }).sorted().last ?? 0
     rbDelegate?.gridViewDidUpdateRangehead(self, withPanGesture: false)
   }
 

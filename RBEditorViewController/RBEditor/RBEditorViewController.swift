@@ -40,7 +40,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
   let toolbarView = RBToolbarView(frame: .zero)
   let gridView = RBGridView(frame: .zero)
   let actionViewWidth: CGFloat = 100
-  let toolbarHeight: CGFloat = 100
+  let toolbarHeight: CGFloat = 110
 
   var projectData: RBProjectData! = RBProjectData(name: "Project")
   var history: RBHistory!
@@ -67,7 +67,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
     actionView.widthAnchor.constraint(equalToConstant: actionViewWidth).isActive = true
     actionView.backgroundColor = UIColor.actionBarBackgroundColor
     actionView.delegate = self
- 
+
     contentView.addSubview(toolbarView)
     toolbarView.translatesAutoresizingMaskIntoConstraints = false
     toolbarView.leftAnchor.constraint(equalTo: actionView.rightAnchor).isActive = true
@@ -92,6 +92,11 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
     gridView.measureBackgroundColor = UIColor.measureBackgroundColor
     gridView.measureLabelTextColor = UIColor.measureTextColor
     gridView.playheadView.isUserInteractionEnabled = false
+    gridView.rangeheadView.customMenuItems = [
+      RBGridViewCellCustomMenuItem(
+        title: i18n.snapRangehead.description,
+        action: #selector(rangeheadDidPressSnapButton))
+    ]
 
     setup()
   }
@@ -120,6 +125,12 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
 
   func updateToolbar() {
     switch mode {
+    case .strum:
+      let toolbarMode = StrumToolbarMode(
+        props: StrumToolbarModeProps(
+          rhythmData: selectedRhythmData,
+          didUpdateStrumCallback: strumToolbar(didUpdate:)))
+      toolbarView.render(mode: toolbarMode)
     case .record:
       let toolbarMode = RecordToolbarMode(
         props: RecordToolbarModeProps(
@@ -197,6 +208,8 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
     }
   }
 
+  func didPressClearButton() {}
+
   // MARK: RBActionViewDelegate
 
   func actionView(_ actionView: RBActionView, didSelect action: RBAction, sender: UIButton) {
@@ -225,12 +238,12 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
       presentPicker(data: pickerData)
     case .undo:
       guard let historyItem = history.undo() else { return }
-      projectData?.rhythm = historyItem.rhythmData
+      projectData?.rhythm = historyItem.rhythmData.copy()
       projectData?.duration = historyItem.duration
       reload()
     case .redo:
       guard let historyItem = history.redo() else { return }
-      projectData?.rhythm = historyItem.rhythmData
+      projectData?.rhythm = historyItem.rhythmData.copy()
       projectData?.duration = historyItem.duration
       reload()
     }
@@ -284,8 +297,6 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
 
   func gridViewDidUpdateRangehead(_ gridView: RBGridView, withPanGesture: Bool) {
     projectData?.duration = gridView.rangeheadView.position
-    guard withPanGesture else { return }
-    history.push()
     if mode == .record {
       updateToolbar()
     }
@@ -305,23 +316,57 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
     projectDataDidChange()
   }
 
-  // MARK: RecordToolbarModeView
+  // MARK: Rangehead
 
-  func recordToolbarDidAddRecording() {
-    gridView.reloadData()
-  }
-
-  func recordToolbarDidUpdateRecording(duration: Double) {
-    let index = (projectData?.rhythm.count ?? 0) - 1
-    guard index >= 0 else { return }
-    gridView.updateDurationOfCell(at: index, duration: duration)
-  }
-
-  func recordToolbarDidEndRecording() {
-    gridView.snapRangeheadToLastCell()
-    gridView.fixOverlaps()
-    updateToolbar()
-    projectDataDidChange()
+  @IBAction func rangeheadDidPressSnapButton() {
+    let floorPosition = floor(gridView.rangeheadView.position)
+    var snapPositions = [Double]()
+    var snapPositionTitles = [String]()
+    var currentPosition = floorPosition
+    var currentBar = Int(floorPosition) + 1
+    var currentBeat = 1
+    var currentSubbeat = 1
+    while currentPosition <= floorPosition + 1.0 {
+      // Create title
+      var title = "\(currentBar)"
+      if currentSubbeat > 1 || currentBeat > 1 {
+        title += ".\(currentBeat)"
+      }
+      if currentSubbeat > 1 {
+        title += ".\(currentSubbeat)"
+      }
+      // Append position-title pair
+      snapPositions.append(currentPosition)
+      snapPositionTitles.append(title)
+      // Increase position
+      currentPosition += 1.0/16.0
+      currentSubbeat += 1
+      // Check if we hit next beat
+      if currentSubbeat > 4 {
+        currentSubbeat = 1
+        currentBeat += 1
+      }
+      // Check if we hit next bar
+      if currentBeat > 4 {
+        currentBeat = 1
+        currentBar += 1
+      }
+    }
+    // Create picker
+    let pickerData = PickerData(
+      title: i18n.selectSnapPosition.description,
+      rows: snapPositionTitles,
+      initialSelectionIndex: 0,
+      cancelCallback: nil,
+      doneCallback: { item, index in
+        guard let safePosition = snapPositions[safe: index] else { return }
+        DispatchQueue.main.async {
+          self.gridView.rangeheadView.position = safePosition
+          self.projectData.duration = safePosition
+          self.projectDataDidChange(shouldReload: false)
+        }
+      })
+    presentPicker(data: pickerData)
   }
 
   // MARK: RhythmToolbarModeView
@@ -338,7 +383,7 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
   func rhythmToolbar(didAdd rest: Double) {
     gridView.rangeheadView.position += rest
     projectData?.duration = gridView.rangeheadView.position
-    history.push()
+    projectDataDidChange()
   }
 
   func rhythmToolbar(didUpdate rhythmData: RBRhythmData) {
@@ -351,6 +396,12 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
   // MARK: ArpToolbarModeView
 
   func arpToolbar(didUpdate arp: RBArp) {
+    projectDataDidChange(shouldReload: false)
+  }
+
+  // MARK: StrumToolbarModeView
+
+  func strumToolbar(didUpdate strum: RBStrum) {
     projectDataDidChange(shouldReload: false)
   }
 
@@ -373,6 +424,25 @@ class RBEditorViewController: UIViewController, RBActionViewDelegate, RBGridView
 
   func transposeToolbar(didUpdate transpose: Int) {
     projectDataDidChange(shouldReload: false)
+  }
+
+  // MARK: RecordToolbarModeView
+
+  func recordToolbarDidAddRecording() {
+    gridView.reloadData()
+  }
+
+  func recordToolbarDidUpdateRecording(duration: Double) {
+    let index = (projectData?.rhythm.count ?? 0) - 1
+    guard index >= 0 else { return }
+    gridView.updateDurationOfCell(at: index, duration: duration)
+  }
+
+  func recordToolbarDidEndRecording() {
+    gridView.snapRangeheadToLastCell()
+    gridView.fixOverlaps()
+    updateToolbar()
+    projectDataDidChange()
   }
 
   // MARK: SnapshotToolbarModeView

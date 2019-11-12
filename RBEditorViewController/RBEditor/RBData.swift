@@ -17,11 +17,6 @@ struct Tempo: Codable {
   var bpm: Double = 120
 }
 
-struct RBHistoryItem: Equatable {
-  let rhythmData: [RBRhythmData]
-  let duration: Double
-}
-
 extension Collection {
   /// Returns the element at the specified index iff it is within bounds, otherwise nil.
   subscript(safe index: Index) -> Element? {
@@ -88,6 +83,11 @@ extension UIViewController {
   }
 }
 
+struct RBHistoryItem: Equatable {
+  let rhythmData: [RBRhythmData]
+  let duration: Double
+}
+
 class RBHistory {
   private var dataRef: RBProjectData
   private(set) var stack: [RBHistoryItem]
@@ -110,8 +110,9 @@ class RBHistory {
   }
 
   func push() {
+    let rhythmCopy = dataRef.rhythm.copy()
     let historyItem = RBHistoryItem(
-      rhythmData: dataRef.rhythm.copy(),
+      rhythmData: rhythmCopy,
       duration: dataRef.duration)
     stack = Array((Array(stack.prefix(cursor + 1)) + [historyItem]).suffix(limit))
     cursor = stack.count - 1
@@ -131,19 +132,21 @@ class RBHistory {
 }
 
 enum RBMode: Int, Codable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
-  case record
   case rhythm
   case arp
+  case strum
   case ratchet
   case velocity
   case transpose
   case snapshots
+  case record
 
   var description: String {
     switch self {
     case .record: return i18n.record.description
     case .rhythm: return i18n.rhythm.description
     case .arp: return i18n.arp.description
+    case .strum: return i18n.strum.description
     case .ratchet: return i18n.ratchet.description
     case .velocity: return i18n.velocity.description
     case .transpose: return i18n.transpose.description
@@ -268,8 +271,68 @@ enum RBModifierType: Int, Codable, CaseIterable, CustomStringConvertible {
   }
 }
 
-enum RBArp: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+enum RBStrumOrder: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
   case none
+  case highToLow
+  case lowToHigh
+  case random
+
+  var description: String {
+    switch self {
+    case .none: return i18n.none.description
+    case .highToLow: return i18n.highToLow.description
+    case .lowToHigh: return i18n.lowToHigh.description
+    case .random: return i18n.randomOrder.description
+    }
+  }
+}
+
+class RBStrum: Codable, Equatable, NSCopying {
+  var offset: Double
+  var order: RBStrumOrder
+
+  enum CodingKeys: CodingKey {
+    case offset
+    case order
+  }
+
+  init(
+    offset: Double = 0,
+    order: RBStrumOrder = .none) {
+    self.offset = offset
+    self.order = order
+  }
+
+  // MARK: Codable
+
+  required init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    offset = try values.decode(Double.self, forKey: .offset)
+    order = try values.decode(RBStrumOrder.self, forKey: .order)
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(offset, forKey: .offset)
+    try container.encode(order, forKey: .order)
+  }
+
+  // MARK: NSCopying
+
+  func copy(with zone: NSZone? = nil) -> Any {
+    return RBStrum(offset: offset, order: order)
+  }
+
+  // MARK: Equatable
+
+  static func == (lhs: RBStrum, rhs: RBStrum) -> Bool {
+    return lhs.offset == rhs.offset &&
+      lhs.order == rhs.order
+  }
+}
+
+enum RBArp: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, ToolbarButtoning {
+  case strum
   case up
   case down
   case updown
@@ -279,7 +342,7 @@ enum RBArp: Int, Codable, Equatable, CaseIterable, CustomStringConvertible, Tool
 
   var description: String {
     switch self {
-    case .none: return i18n.none.description
+    case .strum: return i18n.strum.description
     case .up: return i18n.upOrder.description
     case .down: return i18n.downOrder.description
     case .updown: return i18n.upDownOrder.description
@@ -323,6 +386,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
   var transpose: Int
   var arp: RBArp
   var ratchet: RBRatchet
+  var strum: RBStrum
 
   enum CodingKeys: CodingKey {
     case id
@@ -332,6 +396,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     case transpose
     case arp
     case ratchet
+    case strum
   }
 
   init(
@@ -340,8 +405,9 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     duration: Double = 0,
     velocity: Int = 90,
     tranpose: Int = 0,
-    arp: RBArp = .none,
-    ratchet: RBRatchet = .none) {
+    arp: RBArp = .strum,
+    ratchet: RBRatchet = .none,
+    strum: RBStrum = RBStrum()) {
     self.id = id ?? UUID().uuidString
     self.position = position
     self.duration = duration
@@ -349,6 +415,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     self.transpose = tranpose
     self.arp = arp
     self.ratchet = ratchet
+    self.strum = strum
   }
 
   // MARK: Codable
@@ -362,6 +429,7 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     transpose = try values.decode(Int.self, forKey: .transpose)
     arp = try values.decode(RBArp.self, forKey: .arp)
     ratchet = try values.decode(RBRatchet.self, forKey: .ratchet)
+    strum = try values.decode(RBStrum.self, forKey: .strum)
   }
 
   func encode(to encoder: Encoder) throws {
@@ -373,18 +441,21 @@ class RBRhythmData: Codable, Equatable, NSCopying {
     try container.encode(transpose, forKey: .transpose)
     try container.encode(arp, forKey: .arp)
     try container.encode(ratchet, forKey: .ratchet)
+    try container.encode(strum, forKey: .strum)
   }
 
   // MARK: NSCopynig
 
   func copy(with zone: NSZone? = nil) -> Any {
-    return RBRhythmData(
+    let copy = RBRhythmData(
       position: position,
       duration: duration,
       velocity: velocity,
       tranpose: transpose,
       arp: arp,
-      ratchet: ratchet)
+      ratchet: ratchet,
+      strum: strum.copy() as! RBStrum)
+    return copy
   }
 
   // MARK: Equatable
@@ -395,7 +466,8 @@ class RBRhythmData: Codable, Equatable, NSCopying {
       lhs.velocity == rhs.velocity &&
       lhs.transpose == rhs.transpose &&
       lhs.arp == rhs.arp &&
-      lhs.ratchet == rhs.ratchet
+      lhs.ratchet == rhs.ratchet &&
+      lhs.strum == rhs.strum
   }
 }
 
@@ -404,8 +476,9 @@ struct RBSnapshotItem: Codable {
   let duration: Double
 
   func copy() -> RBSnapshotItem {
+    let rhythmCopy = rhythmData.copy()
     return RBSnapshotItem(
-      rhythmData: rhythmData.copy(),
+      rhythmData: rhythmCopy,
       duration: duration)
   }
 }
@@ -512,20 +585,23 @@ class RBProjectData: Codable, NSCopying {
   }
 
   func snapshot() {
+    let rhythmCopy = rhythm.copy()
     let snapshotItem = RBSnapshotItem(
-      rhythmData: rhythm.copy(),
+      rhythmData: rhythmCopy,
       duration: duration)
     snapshotData.snapshots.append(snapshotItem)
   }
 
   func copy(with zone: NSZone? = nil) -> Any {
+    let rhythmCopy = rhythm.copy()
+    let snapshotCopy = snapshotData.copy() as! RBSnapshotData
     return RBProjectData(
       id: id,
       name: name,
-      rhythm: rhythm.copy(),
+      rhythm: rhythmCopy,
       tempo: tempo,
       duration: duration,
-      snapshotData: snapshotData.copy() as? RBSnapshotData ?? RBSnapshotData(),
+      snapshotData: snapshotCopy,
       creationDate: createDate)
   }
 }

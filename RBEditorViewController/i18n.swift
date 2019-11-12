@@ -25,6 +25,10 @@ enum i18n: String, CustomStringConvertible {
   case record
   case rhythm
   case arp
+  case strum
+  case strumToolbarTitle
+  case offset
+  case strumOrder
   case ratchet
   case clear
   case undo
@@ -32,7 +36,11 @@ enum i18n: String, CustomStringConvertible {
   case `default`
   case highFirstOrder
   case lowFirstOrder
+  case lowToHigh
+  case highToLow
   case none
+  case snapRangehead
+  case selectSnapPosition
   case rest
   case redo
   case add

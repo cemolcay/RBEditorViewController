@@ -56,3 +56,11 @@
 "velocity" = "Velocity";
 "mode" = "Mode";
 "snapshots" = "Snapshots";
+"snapRangehead" = "Snap to Grid";
+"selectSnapPosition" = "Select the Snapping Position";
+"strum" = "Strum";
+"offset" = "Offset";
+"strumOrder" = "Strum Order";
+"strumToolbarTitle" = "Edit Strum";
+"lowToHigh" = "Low to High";
+"highToLow" = "High to Low";

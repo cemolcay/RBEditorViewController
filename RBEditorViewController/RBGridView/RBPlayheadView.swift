@@ -63,6 +63,12 @@ public class RBPlayheadView: UIView {
   private var panningView = UIView()
   /// The hit are offset for panning.
   public var panningOffset: CGFloat = 20
+  /// Custom items other than delete, when you long press cell.
+  open var customMenuItems = [RBGridViewCellCustomMenuItem]()
+
+  open override var canBecomeFirstResponder: Bool {
+    return true
+  }
 
   public override var isUserInteractionEnabled: Bool {
     didSet {
@@ -91,9 +97,12 @@ public class RBPlayheadView: UIView {
     addSubview(panningView)
     layer.addSublayer(lineLayer)
     layer.addSublayer(shapeLayer)
+
+    let longPressGesure = UILongPressGestureRecognizer(target: self, action: #selector(didLongPress(longPress:)))
+    addGestureRecognizer(longPressGesure)
   }
 
-  // Lifecycle
+  // MARK: Lifecycle
 
   public override func layoutSubviews() {
     super.layoutSubviews()
@@ -182,7 +191,19 @@ public class RBPlayheadView: UIView {
     shapeLayer.shadowRadius = 1
   }
 
+  // MARK: Actions
+
   @objc internal func didPan(pan: UIPanGestureRecognizer) {
     delegate?.playheadView(self, didPan: pan)
+  }
+
+  @objc internal func didLongPress(longPress: UILongPressGestureRecognizer) {
+    guard let superview = superview else { return }
+    becomeFirstResponder()
+    let menu = UIMenuController.shared
+    menu.menuItems = customMenuItems.map({ $0.menuItem })
+    menu.arrowDirection = .up
+    menu.setTargetRect(frame, in: superview)
+    menu.setMenuVisible(true, animated: true)
   }
 }
