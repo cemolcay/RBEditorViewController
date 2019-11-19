@@ -17,6 +17,7 @@ RhythmBud's editor UI code.
 - Taking snapshots
 - History (undo/redo)
 - Localization (i18n)
+- UIStackView based all-code backed UI
 
 ##### Disclaimer:
 
